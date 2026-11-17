@@ -15,10 +15,16 @@ public class MortaarFabric implements ModInitializer {
     // Server field to access when no other objects are available to get it from.
     public static @Nullable MinecraftServer server;
 
+    /** Port: id of the mod Mortaar is vendored into. */
+    public static final String HOST_MOD_ID = "envelope";
+
     @Override
     public void onInitialize() {
         Mortaar.init();
-        ConfigRegistry.INSTANCE.register(Mortaar.ID, ModConfig.Type.SERVER, Config.Server.SPEC);
+        // Port: Mortaar is vendored into Envelope and is no longer a mod of its own, so there is no "mortaar" mod
+        // container to attach the config to (ModConfig throws "No mod with id 'mortaar'"). Its server config is
+        // registered under Envelope's mod id, with its own file name so it does not clash with Envelope's.
+        ConfigRegistry.INSTANCE.register(HOST_MOD_ID, ModConfig.Type.SERVER, Config.Server.SPEC, "envelope-mortaar-server.toml");
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             MortaarCommand.register(dispatcher, registryAccess);

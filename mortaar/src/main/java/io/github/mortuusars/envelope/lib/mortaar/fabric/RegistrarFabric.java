@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
 
 public class RegistrarFabric implements Registrar {
     private final String modId;
@@ -129,7 +130,8 @@ public class RegistrarFabric implements Registrar {
 
     @Override
     public <T> Supplier<EntityDataSerializer<T>> entityDataSerializer(String id, EntityDataSerializer<T> serializer) {
-        EntityDataSerializers.registerSerializer(serializer);
+        // 1.21.11: Fabric API rejects EntityDataSerializers.registerSerializer (raw ids can desync between sides)
+        FabricTrackedDataRegistry.register(Identifier.fromNamespaceAndPath(modId, id), serializer);
         return () -> serializer;
     }
 

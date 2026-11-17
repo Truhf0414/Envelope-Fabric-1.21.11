@@ -108,7 +108,7 @@ public class StackIngredientTests extends BuggerTests {
                 "item": "minecraft:emerald",
                 "count": 3,
                 "components": {
-                  "minecraft:fire_resistant": {},
+                  "minecraft:glider": {},
                   "envelope:mail_delivery_info": {
                       "sender": {
                           "type": "service",
@@ -138,7 +138,7 @@ public class StackIngredientTests extends BuggerTests {
                 "item": "minecraft:emerald",
                 "count": 3,
                 "components": {
-                  "minecraft:fire_resistant": {},
+                  "minecraft:glider": {},
                   "envelope:mail_delivery_info": {
                       "sender": {
                           "type": "service",

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "envelope_gametest",
+  "version": "1.0.0",
+  "name": "Envelope port tests",
+  "description": "Scripted client tests for the Envelope 1.21.11 port. Not shipped with the mod.",
+  "license": "GPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "io.github.mortuusars.envelope.gametest.EnvelopeClientGameTest"
+    ]
+  },
+  "depends": {
+    "envelope": "*"
+  }
+}

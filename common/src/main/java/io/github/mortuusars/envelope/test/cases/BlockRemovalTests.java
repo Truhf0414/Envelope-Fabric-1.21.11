@@ -257,6 +257,8 @@ public class BlockRemovalTests extends BuggerTests {
         level.removeBlockEntity(pos);
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         MailService.of(level).getMailboxes().remove(pos);
+        // Keep cases independent: a leftover stored inbox from one case must not show up in the next one
+        InboxStorage.get(level).removeByAddress(new BlockAddress("envelope_test_removal"));
         clearItems(level, pos);
     }
 }

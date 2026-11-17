@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(Entity.class)
 public class EntityMixin {
     @Shadow
-    public float fallDistance;
+    public double fallDistance; // 1.21.11: Entity#fallDistance is a double (was float); a wrong type fails the mixin at startup
 
     @WrapMethod(method = "checkFallDamage")
     private void onCheckFallDamage(double y, boolean onGround, BlockState state, BlockPos pos, Operation<Void> original) {
@@ -21,7 +21,7 @@ public class EntityMixin {
         Entity entity = (Entity)(Object)this;
 
         if (state.getBlock() instanceof PaperBoxBlock block && fallDistance > block.getFallDistanceToBreak(state, pos, entity)) {
-            distance = block.reduceFallDistance(state, pos, entity, fallDistance);
+            distance = block.reduceFallDistance(state, pos, entity, (float) fallDistance);
         }
 
         original.call(y, onGround, state, pos);
