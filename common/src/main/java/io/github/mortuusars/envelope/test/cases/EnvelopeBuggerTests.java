@@ -8,6 +8,9 @@ public class EnvelopeBuggerTests {
               .addFrom(new StackIngredientTests())
               .addFrom(new CourierDeliveryTests())
               .addFrom(new MailCraftingRecipeTests())
-              .addFrom(new MailCraftingTests());
+              .addFrom(new MailCraftingTests())
+              // Port tests (1.21.11, phase 2 D7)
+              .addFrom(new SaveLoadTests())
+              .addFrom(new BlockRemovalTests());
     }
 }

@@ -188,6 +188,6 @@ public class EquineAssuranceBureau {
         return Style.EMPTY
               .withColor(ChatFormatting.DARK_RED)
               .withUnderlined(true)
-              .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(stack)));
+              .withHoverEvent(new HoverEvent.ShowItem(stack));
     }
 }

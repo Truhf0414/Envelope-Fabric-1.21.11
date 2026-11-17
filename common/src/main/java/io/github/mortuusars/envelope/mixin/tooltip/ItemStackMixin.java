@@ -1,7 +1,6 @@
 package io.github.mortuusars.envelope.mixin.tooltip;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.llamalad7.mixinextras.sugar.Local;
 import io.github.mortuusars.envelope.event.CommonEvents;
 import net.minecraft.core.component.DataComponentHolder;
 import net.minecraft.network.chat.Component;
@@ -14,11 +13,11 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemStack.class)
 public abstract class ItemStackMixin implements DataComponentHolder {
@@ -28,13 +27,14 @@ public abstract class ItemStackMixin implements DataComponentHolder {
         return CommonEvents.modifyTooltipImage(original, stack);
     }
 
-    @SuppressWarnings("LocalMayUseName") // Using variable names can cause crashes on fabric.
-    @Inject(method = "getTooltipLines",
+    // 1.21.11: the component tooltips moved from getTooltipLines into addDetailsToTooltip, and addToTooltip gained a
+    // TooltipDisplay parameter. Same spot as before: right after the item's own hover text, before the first component line.
+    @Inject(method = "addDetailsToTooltip",
           at = @At(value = "INVOKE",
                 ordinal = 0,
-                target = "Lnet/minecraft/world/item/ItemStack;addToTooltip(Lnet/minecraft/core/component/DataComponentType;Lnet/minecraft/world/item/Item$TooltipContext;Ljava/util/function/Consumer;Lnet/minecraft/world/item/TooltipFlag;)V"))
-    private void appendHoverText(Item.TooltipContext tooltipContext, @Nullable Player player, TooltipFlag tooltipFlag,
-                                 CallbackInfoReturnable<List<Component>> cir, @Local Consumer<Component> consumer) {
+                target = "Lnet/minecraft/world/item/ItemStack;addToTooltip(Lnet/minecraft/core/component/DataComponentType;Lnet/minecraft/world/item/Item$TooltipContext;Lnet/minecraft/world/item/component/TooltipDisplay;Ljava/util/function/Consumer;Lnet/minecraft/world/item/TooltipFlag;)V"))
+    private void appendHoverText(Item.TooltipContext tooltipContext, TooltipDisplay tooltipDisplay, @Nullable Player player,
+                                 TooltipFlag tooltipFlag, Consumer<Component> consumer, CallbackInfo ci) {
         ItemStack stack = (ItemStack) (Object) this;
         CommonEvents.appendTooltipLines(stack, tooltipContext, player, tooltipFlag, consumer);
     }

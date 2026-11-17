@@ -270,14 +270,14 @@ public class CloudDepository {
         depositedItem = Mail.removeAllDeliveryData(depositedItem.copy());
 
         Component depositedItemComponent = !depositedItem.isEmpty()
-              ? depositedItem.getHoverName().plainCopy().withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(depositedItem))))
+              ? depositedItem.getHoverName().plainCopy().withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true).withHoverEvent(new HoverEvent.ShowItem(depositedItem)))
               : Component.translatable("letter.envelope.cloud_depository.deposit_report.item").withStyle(ChatFormatting.DARK_RED);
 
         ItemStack withdrawalRequestLetter = createWithdrawalRequestLetter(service.getLevel().registryAccess());
         Component withdrawalRequestComponent = Component.translatable("letter.envelope.cloud_depository.withdrawal_request.name").withStyle(Style.EMPTY
               .withColor(ChatFormatting.DARK_BLUE)
               .withUnderlined(true)
-              .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(withdrawalRequestLetter))));
+              .withHoverEvent(new HoverEvent.ShowItem(withdrawalRequestLetter)));
 
         return Mail.of(Envelope.Items.SEALED_SERVICE_LETTER)
               .serviceLetterMeaning(LETTER_MEANING_DEPOSIT_REPORT)
@@ -309,7 +309,7 @@ public class CloudDepository {
                 if (hasElements) {
                     randomIndexableItems.append(", ");
                 }
-                MutableComponent itemName = item.getHoverName().plainCopy().withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(item))));
+                MutableComponent itemName = item.getHoverName().plainCopy().withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true).withHoverEvent(new HoverEvent.ShowItem(item)));
                 randomIndexableItems.append(itemName);
                 hasElements = true;
             }

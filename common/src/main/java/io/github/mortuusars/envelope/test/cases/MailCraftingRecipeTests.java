@@ -160,10 +160,17 @@ public class MailCraftingRecipeTests extends BuggerTests {
 
     // --
 
+    // 1.21.11: Ingredient.EMPTY no longer exists, so NonNullList.of(EMPTY, ...) cannot be used.
+    private static NonNullList<Ingredient> ingredientList(Ingredient... ingredients) {
+        NonNullList<Ingredient> list = NonNullList.create();
+        list.addAll(java.util.List.of(ingredients));
+        return list;
+    }
+
     private MailCraftingRecipe recipe(Ingredient... ingredients) {
         return new MailCraftingRecipe(
               MailService.of(Platform.getCurrentServerOrThrow().overworld()).getAddress(),
-              NonNullList.of(Ingredient.EMPTY, ingredients),
+              ingredientList(ingredients),
               new ItemStack(Items.BARRIER),
               0);
     }

@@ -22,7 +22,7 @@ public class CourierDeliveryTests extends BuggerTests {
     }
 
     private DataResult<Boolean> testCallbacks(ServerPlayer player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer(); // 1.21.11: Entity#getServer removed
         assert server != null;
 
         Delivery delivery = new Delivery(

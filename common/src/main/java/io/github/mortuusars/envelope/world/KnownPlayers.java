@@ -155,7 +155,7 @@ public class KnownPlayers extends SavedData {
 
     // 1.21.11: SavedData.Factory and SavedData#save were replaced by SavedDataType. DimensionDataStorage now encodes
     // and decodes CODEC itself (with registry-aware ops) and logs parse failures. DataFixTypes stays null like upstream.
-    private static SavedDataType<KnownPlayers> type(String name) {
+    public static SavedDataType<KnownPlayers> type(String name) { // public: used by test/cases/SaveLoadTests
         return new SavedDataType<>(name, KnownPlayers::new, CODEC, null);
     }
 

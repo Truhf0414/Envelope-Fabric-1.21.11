@@ -1,6 +1,6 @@
 package io.github.mortuusars.envelope.fabric;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry; // 1.21.11 (FCAP 21.11): NeoForgeConfigRegistry -> api.v5.ConfigRegistry
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.command.EnvelopeCommand;
@@ -45,9 +45,9 @@ public class EnvelopeFabric implements ModInitializer {
         new io.github.mortuusars.envelope.lib.mortaar.fabric.MortaarFabric().onInitialize();
         Envelope.init();
 
-        NeoForgeConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.SERVER, Config.Server.SPEC);
-        NeoForgeConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.COMMON, Config.Common.SPEC);
-        NeoForgeConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.CLIENT, Config.Client.SPEC);
+        ConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.SERVER, Config.Server.SPEC);
+        ConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.COMMON, Config.Common.SPEC);
+        ConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.CLIENT, Config.Client.SPEC);
 
         CommonEvents.commonSetup();
 

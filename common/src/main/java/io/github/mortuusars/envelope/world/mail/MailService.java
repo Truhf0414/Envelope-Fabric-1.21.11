@@ -197,7 +197,7 @@ public class MailService {
                     ? Component.translatable("letter.envelope.courier_death_notice.mail_lost_" + courier.getRandom().nextInt(6),
                     delivery.getMail().getHoverName().copy()
                           .withStyle(Style.EMPTY.withUnderlined(true)
-                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(delivery.getMail())))))
+                                .withHoverEvent(new HoverEvent.ShowItem(delivery.getMail()))))
                     : CommonComponents.EMPTY)
               .append(Component.translatable("letter.envelope.courier_death_notice.condolence_" + courier.getRandom().nextInt(5),
                     courier.getName()))

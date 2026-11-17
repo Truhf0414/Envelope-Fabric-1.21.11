@@ -51,8 +51,8 @@ public class EnvelopeDebugCommand {
             context.getSource().sendSuccess(() -> Component.literal("[Kill Them All!]")
                   .withStyle(Style.EMPTY
                         .withColor(ChatFormatting.RED)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/envelope debug terminate_all_deliveries"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click")))), true);
+                        .withClickEvent(new ClickEvent.RunCommand("/envelope debug terminate_all_deliveries"))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click")))), true);
         } else {
             terminateAllDeliveriesRequiresConfirmation = true;
 
@@ -219,8 +219,8 @@ public class EnvelopeDebugCommand {
     }
 
     private static BlockPos locateStructure(CommandSourceStack source, ResourceKey<Structure> key) throws CommandSyntaxException {
-        Registry<Structure> registry = source.getLevel().registryAccess().registryOrThrow(Registries.STRUCTURE);
-        Holder.Reference<Structure> holder = registry.getHolderOrThrow(key);
+        Registry<Structure> registry = source.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
+        Holder.Reference<Structure> holder = registry.getOrThrow(key);
         HolderSet.Direct<Structure> holderSet = HolderSet.direct(holder);
         BlockPos blockPos = BlockPos.containing(source.getPosition());
         ServerLevel serverLevel = source.getLevel();
@@ -230,7 +230,7 @@ public class EnvelopeDebugCommand {
         stopwatch.stop();
 
         if (pair == null) {
-            source.sendFailure(Component.literal("Cannot find " + key.location()));
+            source.sendFailure(Component.literal("Cannot find " + key.identifier()));
             return BlockPos.ZERO;
         } else {
             BlockPos pos = pair.getFirst();
@@ -238,8 +238,8 @@ public class EnvelopeDebugCommand {
             Component component = ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", pos.getX(), pos.getY(), pos.getZ()))
                   .withStyle(
                         style -> style.withColor(ChatFormatting.GREEN)
-                              .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + pos.getX() + " " + pos.getY() + " " + pos.getZ()))
-                              .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")))
+                              .withClickEvent(new ClickEvent.SuggestCommand("/tp @s " + pos.getX() + " " + pos.getY() + " " + pos.getZ()))
+                              .withHoverEvent(new HoverEvent.ShowText(Component.translatable("chat.coordinates.tooltip")))
                   );
 
             source.sendSuccess(() -> component, true);

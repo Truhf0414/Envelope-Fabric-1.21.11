@@ -7,3 +7,6 @@ accessible field net/minecraft/world/inventory/AbstractContainerMenu quickcraftS
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen lastQuickMoved Lnet/minecraft/world/item/ItemStack;
 
 accessible field net/minecraft/world/entity/ai/goal/FollowMobGoal followingMob Lnet/minecraft/world/entity/Mob;
+
+# 1.21.11: mixin/death/InventoryMixin reads LivingEntity#dead (protected)
+accessible field net/minecraft/world/entity/LivingEntity dead Z

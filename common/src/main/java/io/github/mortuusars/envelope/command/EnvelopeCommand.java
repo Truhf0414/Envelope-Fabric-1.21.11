@@ -37,7 +37,7 @@ import java.util.*;
 public class EnvelopeCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(Commands.literal("envelope")
-              .requires((stack) -> stack.hasPermission(2))
+              .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)) // 1.21.11: permission level 2 = LEVEL_GAMEMASTERS
               .then(Commands.literal("mail")
                     .then(Commands.literal("send")
                           .then(Commands.argument("mail", ItemArgument.item(context))
@@ -221,16 +221,16 @@ public class EnvelopeCommand {
         return Component.literal(name)
               .withStyle(Style.EMPTY
                     .withColor(Colors.ADDRESS_NEUTRAL)
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Copy Address")
+                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Copy Address")
                           .append("\n")
                           .append(Component.literal(name).withStyle(ChatFormatting.GRAY))))
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, name)))
+                    .withClickEvent(new ClickEvent.CopyToClipboard(name)))
               .append(Component.literal("@[" + posStr + "]").withStyle(Style.EMPTY
                     .withColor(ChatFormatting.WHITE)
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Copy Position")
+                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Copy Position")
                           .append("\n")
                           .append(Component.literal(posToCopy).withStyle(ChatFormatting.GRAY))))
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, posToCopy))));
+                    .withClickEvent(new ClickEvent.CopyToClipboard(posToCopy))));
     }
 
     // -- Seal Locks
@@ -245,8 +245,8 @@ public class EnvelopeCommand {
                 return Component.literal("Lock created: ").append(Component.literal(text)
                       .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
                             .withUnderlined(true)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Copy")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, text))));
+                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("Copy")))
+                            .withClickEvent(new ClickEvent.CopyToClipboard(text))));
             }, true);
         } else {
             context.getSource().sendSuccess(() -> {
@@ -254,8 +254,8 @@ public class EnvelopeCommand {
                 return Component.literal("Lock already exists: ").append(Component.literal(text)
                       .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
                             .withUnderlined(true)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Copy")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, text))));
+                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("Copy")))
+                            .withClickEvent(new ClickEvent.CopyToClipboard(text))));
             }, true);
         }
 
@@ -305,8 +305,8 @@ public class EnvelopeCommand {
             context.getSource().sendSuccess(() -> Component.literal(lock.toString())
                   .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
                         .withUnderlined(true)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Copy")))
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, lock.toString()))), true);
+                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Copy")))
+                        .withClickEvent(new ClickEvent.CopyToClipboard(lock.toString()))), true);
         }
 
         return 0;
