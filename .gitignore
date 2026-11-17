@@ -116,3 +116,7 @@ run/
 !gradle-wrapper.jar
 
 /common/src/generated/.cache/
+
+# Internal notes (port planning, not published)
+_notes/
+CLAUDE.md
