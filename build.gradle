@@ -98,6 +98,44 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
+// Port: run the built (remapped) jar the way players and servers will, outside the dev environment.
+//   gradlew prodServer          - real dedicated server in run/prodServer (set its ports in server.properties first)
+//   gradlew prodClientGameTest  - real client running the scripted tests from src/gametest against the built jar
+configurations {
+    productionRuntimeMods
+}
+
+dependencies {
+    productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    productionRuntimeMods "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
+}
+
+def gametestJar = tasks.register("gametestJar", Jar) {
+    from sourceSets.gametest.output
+    archiveClassifier = "gametest-dev"
+    destinationDirectory = layout.buildDirectory.dir("devlibs")
+}
+
+def remapGametestJar = tasks.register("remapGametestJar", net.fabricmc.loom.task.RemapJarTask) {
+    inputFile = gametestJar.flatMap { it.archiveFile }
+    classpath.from(sourceSets.gametest.compileClasspath)
+    archiveClassifier = "gametest"
+    addNestedDependencies = false
+    destinationDirectory = layout.buildDirectory.dir("testlibs")
+}
+
+tasks.register("prodServer", net.fabricmc.loom.task.prod.ServerProductionRunTask) {
+    mods.from(configurations.productionRuntimeMods)
+    runDir = file("run/prodServer")
+}
+
+tasks.register("prodClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    mods.from(configurations.productionRuntimeMods)
+    mods.from(remapGametestJar)
+    jvmArgs.add("-Dfabric.client.gametest")
+    runDir = file("run/prodClientGameTest")
+}
+
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
