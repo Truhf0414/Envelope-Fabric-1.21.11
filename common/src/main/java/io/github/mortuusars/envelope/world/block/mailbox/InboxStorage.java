@@ -61,6 +61,17 @@ public class InboxStorage extends SavedData {
               });
     }
 
+    /**
+     * Removes every stored inbox with this address. Used when the mailbox itself is known to be gone (see
+     * {@link Mailboxes#removeIfMailboxIsGone}); the mail in it is discarded, like the contents of a container
+     * replaced by a command.
+     */
+    public void removeByAddress(BlockAddress address) {
+        if (inboxes.values().removeIf(inbox -> inbox.getAddress().equals(address))) {
+            setDirty();
+        }
+    }
+
     public @NotNull Optional<Inbox> getForDelivery(BlockAddress address) {
         for (UnloadedInbox inbox : getInboxes().values()) {
             if (inbox.getAddress().equals(address)) {

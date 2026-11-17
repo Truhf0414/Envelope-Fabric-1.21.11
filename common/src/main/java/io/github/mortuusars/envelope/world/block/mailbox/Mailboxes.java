@@ -93,6 +93,34 @@ public class Mailboxes {
         Optional.ofNullable(getAtPosition(pos)).ifPresent(data -> remove(data.getAddress()));
     }
 
+    /**
+     * 1.21.11 (port decision D8): commands that replace blocks (/setblock, /fill, /clone) skip
+     * BlockEntity#preRemoveSideEffects and Block#affectNeighborsAfterRemoval, so a mailbox removed that way stays
+     * registered and its inbox is moved to {@link InboxStorage} as if it was only unloaded. Called before delivering:
+     * if the registered position is loaded but holds no mailbox, the registration and the stored inbox are removed,
+     * so the mail is treated as "address not found" instead of going into an inbox that no longer exists.
+     * An unloaded position is left alone, because a mailbox in an unloaded chunk is expected to be missing.
+     *
+     * @return true if the address was registered here and has been removed.
+     */
+    public boolean removeIfMailboxIsGone(BlockAddress address) {
+        @Nullable RegisteredMailbox registered = getMailboxes().get(address);
+        if (registered == null) {
+            return false;
+        }
+
+        BlockPos pos = registered.getPos();
+        if (!level.isLoaded(pos) || level.getBlockEntity(pos) instanceof MailboxBlockEntity) {
+            return false;
+        }
+
+        LOGGER.info("Removing mailbox '{}'@[{}]: the block at this position is no longer a mailbox.",
+              address.getString(), pos.toShortString());
+        remove(address);
+        InboxStorage.get(level).removeByAddress(address);
+        return true;
+    }
+
     public @NotNull RegisteredMailbox rename(RegisteredMailbox data, BlockAddress suggestedAddress) {
         BlockAddress newAddress = uniquifyIfKnown(suggestedAddress);
 

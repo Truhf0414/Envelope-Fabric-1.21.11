@@ -27,6 +27,9 @@ public class BlockDropOffHandler implements MailDropOffHandler {
             return MailDropOffResult.PASS;
         }
 
+        // 1.21.11 (port decision D8): drop a registration left behind by a command that replaced the mailbox
+        context.getService().getMailboxes().removeIfMailboxIsGone(address);
+
         return getInboxByAddress(context.getService(), address)
               .map(inbox -> {
                   if (inbox.isInboxFull()) {

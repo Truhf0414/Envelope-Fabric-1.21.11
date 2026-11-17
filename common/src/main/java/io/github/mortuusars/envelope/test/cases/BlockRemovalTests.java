@@ -7,9 +7,18 @@ import io.github.mortuusars.envelope.world.block.LetterBlockEntity;
 import io.github.mortuusars.envelope.world.block.PackageBlockEntity;
 import io.github.mortuusars.envelope.world.block.mailbox.InboxStorage;
 import io.github.mortuusars.envelope.world.block.mailbox.MailboxBlockEntity;
+import io.github.mortuusars.envelope.world.item.component.Id;
 import io.github.mortuusars.envelope.world.mail.MailService;
 import io.github.mortuusars.envelope.world.mail.address.type.BlockAddress;
+import io.github.mortuusars.envelope.world.mail.address.type.CustomAddress;
+import io.github.mortuusars.envelope.world.mail.delivery.Delivery;
+import io.github.mortuusars.envelope.world.mail.delivery.DeliveryPhase;
+import io.github.mortuusars.envelope.world.mail.delivery.DeliveryRoute;
+import io.github.mortuusars.envelope.world.mail.dropoff.BlockDropOffHandler;
+import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffContext;
+import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,6 +34,7 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 /**
@@ -32,8 +42,9 @@ import java.util.function.BiConsumer;
  * <p>
  * 1.21.11 split Block#onRemove into BlockEntity#preRemoveSideEffects (drops, clearing mail) and
  * Block#affectNeighborsAfterRemoval (unregistering the mailbox). LevelChunk skips both when the update flags contain
- * 256 or lack 1/64, which is what /setblock, /fill and /clone (non-destroy modes) do. The command cases therefore
- * assert the invariant we want, and are expected to fail until the phase 2 V6 decision is made.
+ * 256 or lack 1/64, which is what /setblock, /fill and /clone (non-destroy modes) do. Those leftovers are cleaned
+ * passively when mail is sent to the address (port decision D8, {@code Mailboxes#removeIfMailboxIsGone}), so the
+ * command cases send one letter after the removal and expect it to be returned before checking for leftovers.
  * <p>
  * Pistons, water and CarryOn need ticks or another mod and are checked by hand in phase 3b.
  */
@@ -42,11 +53,18 @@ public class BlockRemovalTests extends BuggerTests {
     private static final int MARKER_COUNT = 7;
 
     private enum Removal {
-        SURVIVAL_BREAK, CREATIVE_BREAK, EXPLOSION, SETBLOCK_AIR, FILL_AIR, REPLACED_BY_BLOCK;
+        SURVIVAL_BREAK, CREATIVE_BREAK, EXPLOSION, SETBLOCK_AIR, FILL_AIR, CLONE_OVER, REPLACED_BY_BLOCK;
+
+        /**
+         * Vanilla commands replace blocks without drops and without removal side effects, so the mailbox is only
+         * cleaned up when mail is sent to it (D8).
+         */
+        boolean isCommand() {
+            return this == SETBLOCK_AIR || this == FILL_AIR || this == CLONE_OVER;
+        }
 
         boolean dropsContents() {
-            // Vanilla commands replace blocks without drops, so no drops are expected there.
-            return this != SETBLOCK_AIR && this != FILL_AIR;
+            return !isCommand();
         }
     }
 
@@ -57,6 +75,10 @@ public class BlockRemovalTests extends BuggerTests {
             // which shows the drop count can tell "dropped" from "not dropped".
             add("BlockRemoval_EmptyMailboxControl_" + removal, player -> mailbox(player, removal, false));
         }
+
+        // Control group for the send step: a letter sent to a mailbox that is still in place must be delivered,
+        // which shows the send step can tell "delivered" from "returned".
+        add("BlockRemoval_SendToIntactMailboxControl", BlockRemovalTests::sendToIntactMailbox);
 
         add("BlockRemoval_Package_SurvivalBreak", player -> singleDrop(player, Envelope.Blocks.PACKAGE.get().defaultBlockState(),
               Envelope.Items.PACKAGE.get(), (level, pos) -> {
@@ -95,6 +117,14 @@ public class BlockRemovalTests extends BuggerTests {
 
         List<String> problems = new ArrayList<>();
 
+        if (removal.isCommand()) {
+            MailDropOffResult result = send(level, address);
+            if (!(result instanceof MailDropOffResult.Returned)) {
+                problems.add("a letter sent after the removal was not returned (result: "
+                      + (result == MailDropOffResult.CONSUME ? "CONSUME" : result == MailDropOffResult.PASS ? "PASS" : result) + ")");
+            }
+        }
+
         int expectedDrops = withContents && removal.dropsContents() ? MARKER_COUNT : 0;
         int drops = countDropped(level, pos, MARKER);
         if (drops != expectedDrops) {
@@ -119,6 +149,45 @@ public class BlockRemovalTests extends BuggerTests {
         return problems.isEmpty()
               ? DataResult.success(true)
               : DataResult.error(() -> removal + (withContents ? "" : " (empty control)") + ": " + String.join("; ", problems));
+    }
+
+    private static DataResult<Boolean> sendToIntactMailbox(ServerPlayer player) {
+        ServerLevel level = player.level();
+        BlockPos pos = SaveLoadTests.testPos(player);
+        clearItems(level, pos);
+        level.setBlock(pos, Envelope.Blocks.MAILBOX.get().defaultBlockState(), 3);
+        if (!(level.getBlockEntity(pos) instanceof MailboxBlockEntity mailbox)) {
+            return DataResult.error(() -> "No mailbox block entity at " + pos);
+        }
+        mailbox.setAddress(new BlockAddress("envelope_test_removal"));
+        BlockAddress address = mailbox.getAddress();
+
+        MailDropOffResult result = send(level, address);
+        boolean registered = MailService.of(level).getMailboxes().getAtPosition(pos) != null;
+        int mailCount = mailbox.getAllMail().size();
+
+        cleanUp(level, pos);
+        if (result != MailDropOffResult.CONSUME || !registered || mailCount != 1) {
+            return DataResult.error(() -> "intact mailbox: expected the letter to be delivered (CONSUME, still registered, 1 mail), got "
+                  + (result == MailDropOffResult.CONSUME ? "CONSUME" : result) + ", registered=" + registered + ", mail=" + mailCount);
+        }
+        return DataResult.success(true);
+    }
+
+    /** Sends one letter to the address through the same handler couriers use when they arrive. */
+    private static MailDropOffResult send(ServerLevel level, BlockAddress address) {
+        Delivery delivery = new Delivery(
+              Id.createUnsafe(0),
+              Optional.empty(),
+              new CustomAddress(Component.literal("envelope removal test")),
+              address,
+              new ItemStack(Envelope.Items.LETTER.get()),
+              DeliveryRoute.EMPTY,
+              DeliveryPhase.HANDLING_DELIVERY,
+              0,
+              false
+        );
+        return new BlockDropOffHandler().handle(new MailDropOffContext(MailService.of(level), address, delivery));
     }
 
     private static DataResult<Boolean> singleDrop(ServerPlayer player, BlockState state, Item expected,
@@ -150,6 +219,14 @@ public class BlockRemovalTests extends BuggerTests {
                   server.createCommandSourceStack().withSuppressedOutput(), "setblock " + xyz + " air");
             case FILL_AIR -> server.getCommands().performPrefixedCommand(
                   server.createCommandSourceStack().withSuppressedOutput(), "fill " + xyz + " " + xyz + " air");
+            case CLONE_OVER -> {
+                // Copy an air block (default "replace" mode copies air too) over the mailbox
+                BlockPos source = pos.above(2);
+                level.setBlock(source, Blocks.AIR.defaultBlockState(), 3);
+                String src = source.getX() + " " + source.getY() + " " + source.getZ();
+                server.getCommands().performPrefixedCommand(
+                      server.createCommandSourceStack().withSuppressedOutput(), "clone " + src + " " + src + " " + xyz);
+            }
             case REPLACED_BY_BLOCK -> level.setBlock(pos, Blocks.STONE.defaultBlockState(), 3);
         }
     }
