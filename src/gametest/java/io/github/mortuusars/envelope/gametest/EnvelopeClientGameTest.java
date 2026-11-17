@@ -84,10 +84,88 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
             write(results.resolve("save_reopen.txt"), lines);
         }
 
+        dedicatedServer(context, results, problems);
+
         write(results.resolve("problems.txt"), problems.isEmpty() ? List.of("none") : problems);
         if (!problems.isEmpty()) {
             throw new AssertionError(problems.size() + " problem(s):\n" + String.join("\n", problems));
         }
+    }
+
+    /**
+     * Two sides for real: a dedicated server in its own thread and this client connected to it over the network
+     * stack. Checks what singleplayer cannot: the server starts without client classes, the join handshake accepts
+     * Envelope's registries and packets, recipes arrive through the sync, and a menu opened by the server shows up.
+     */
+    private static void dedicatedServer(ClientGameTestContext context, Path results, List<String> problems) {
+        List<String> lines = new ArrayList<>();
+        try (net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext server = context.worldBuilder().createServer()) {
+            lines.add("OK    dedicated server started");
+            try (net.fabricmc.fabric.api.client.gametest.v1.context.TestServerConnection connection = server.connect()) {
+                connection.getClientWorld().waitForChunksRender();
+                lines.add("OK    client joined and rendered chunks");
+
+                int onServer = server.computeOnServer(s -> (int) s.getRecipeManager().getRecipes().stream()
+                      .filter(holder -> holder.value().getType() == Envelope.RecipeTypes.MAILING.get()).count());
+                int onClient = context.computeOnClient(client ->
+                      ((FabricRecipeManager) client.level.recipeAccess()).getSynchronizedRecipes()
+                            .getAllOfType(Envelope.RecipeTypes.MAILING.get()).size());
+                lines.add((onServer == onClient && onServer > 0 ? "OK    " : "FAIL  ") + "mailing recipes: server " + onServer + ", client " + onClient);
+                if (onServer != onClient || onServer == 0) {
+                    problems.add("dedicated server: mailing recipes server " + onServer + ", client " + onClient);
+                }
+
+                // A server-opened menu with Envelope's own packets: place a mailbox with mail and open it for the player
+                server.runOnServer(s -> {
+                    ServerPlayer player = s.getPlayerList().getPlayers().getFirst();
+                    ServerLevel level = player.level();
+                    s.getPlayerList().op(new net.minecraft.server.players.NameAndId(player.getGameProfile()));
+                    player.setGameMode(GameType.CREATIVE);
+                    player.teleportTo(level, player.getX(), player.getY(), player.getZ(), java.util.Set.of(), 0, 0, true);
+                    // At eye height, two blocks ahead (the player now looks straight south); cleared around it
+                    BlockPos pos = player.blockPosition().offset(0, 1, 2);
+                    level.setBlock(pos.north(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos, Envelope.Blocks.MAILBOX.get().defaultBlockState(), 3);
+                    io.github.mortuusars.envelope.world.block.mailbox.MailboxBlockEntity mailbox =
+                          (io.github.mortuusars.envelope.world.block.mailbox.MailboxBlockEntity) level.getBlockEntity(pos);
+                    mailbox.setAddress(new io.github.mortuusars.envelope.world.mail.address.type.BlockAddress("Dedicated server mailbox"));
+                    mailbox.addMail(new ItemStack(Envelope.Items.LETTER.get()));
+                    player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                });
+                context.waitTicks(20);
+                // Right click the block like a player: the open-menu packet and the mail list travel over the connection
+                context.getInput().pressKey(options -> options.keyUse);
+                context.waitForScreen(io.github.mortuusars.envelope.client.gui.screen.MailboxScreen.class);
+                context.waitTicks(10);
+                context.takeScreenshot("dedicated_server_mailbox");
+                lines.add("OK    mailbox menu opened by the server is shown on the client");
+                context.runOnClient(client -> { if (client.screen != null) client.screen.onClose(); });
+                context.waitTicks(5);
+
+                // The test command through the real command dispatcher, as an operator on a dedicated server
+                List<String> output = server.computeOnServer(s -> {
+                    ServerPlayer player = s.getPlayerList().getPlayers().getFirst();
+                    List<String> out = new ArrayList<>();
+                    net.minecraft.commands.CommandSource capture = new net.minecraft.commands.CommandSource() {
+                        @Override public void sendSystemMessage(net.minecraft.network.chat.Component message) { out.add(message.getString()); }
+                        @Override public boolean acceptsSuccess() { return true; }
+                        @Override public boolean acceptsFailure() { return true; }
+                        @Override public boolean shouldInformAdmins() { return false; }
+                    };
+                    s.getCommands().performPrefixedCommand(player.createCommandSourceStack().withSource(capture), "mortaar debug tests");
+                    return out;
+                });
+                boolean passed = output.stream().anyMatch(line -> line.contains("All tests are passed!"));
+                lines.add((passed ? "OK    " : "FAIL  ") + "/mortaar debug tests as an operator on the dedicated server: " + String.join(" | ", output));
+                if (!passed) {
+                    problems.add("dedicated server: bugger tests -> " + String.join(" | ", output));
+                }
+            }
+        } catch (Throwable e) {
+            lines.add("FAIL  " + e);
+            problems.add("dedicated server: " + e);
+        }
+        write(results.resolve("dedicated_server.txt"), lines);
     }
 
     /** Runs every registered Bugger test with {@code /mortaar debug tests}, executed as the singleplayer player. */
