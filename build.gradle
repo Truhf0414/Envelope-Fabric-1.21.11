@@ -136,6 +136,18 @@ tasks.register("prodClientGameTest", net.fabricmc.loom.task.prod.ClientProductio
     runDir = file("run/prodClientGameTest")
 }
 
+// Joins a dedicated server that is already running in another process (gradlew prodServer) on 127.0.0.1:25599.
+tasks.register("prodClientJoinServer", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    mods.from(configurations.productionRuntimeMods)
+    mods.from(remapGametestJar)
+    jvmArgs.add("-Dfabric.client.gametest")
+    jvmArgs.add("-Denvelope.test.externalServer=127.0.0.1:25599")
+    // The gametest API normally keeps client and server in step; with a server in another process it cannot,
+    // and it asks for this switch.
+    jvmArgs.add("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+    runDir = file("run/prodClientJoinServer")
+}
+
 tasks.named('test', Test) {
     useJUnitPlatform()
 }

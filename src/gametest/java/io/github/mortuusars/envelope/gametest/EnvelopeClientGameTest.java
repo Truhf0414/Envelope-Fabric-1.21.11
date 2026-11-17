@@ -43,6 +43,18 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         Path results = context.computeOnClient(client -> client.gameDirectory.toPath().resolve("envelope_port_results"));
         List<String> problems = new ArrayList<>();
 
+        // -Denvelope.test.externalServer=host:port : only join a dedicated server that runs in another process
+        // (gradlew prodServer) and check what needs two real sides. See ExternalServer.
+        String external = System.getProperty("envelope.test.externalServer");
+        if (external != null) {
+            ExternalServer.run(context, external, results, problems);
+            write(results.resolve("problems.txt"), problems.isEmpty() ? List.of("none") : problems);
+            if (!problems.isEmpty()) {
+                throw new AssertionError(problems.size() + " problem(s):\n" + String.join("\n", problems));
+            }
+            return;
+        }
+
         TestWorldSave save;
         Map<String, String> before;
 
@@ -199,8 +211,15 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
 
         write(results.resolve("bugger_tests.txt"), lines);
 
-        if (lines.stream().noneMatch(line -> line.contains("All tests are passed!"))) {
+        boolean passed = lines.stream().anyMatch(line -> line.contains("All tests are passed!"));
+        boolean counted = lines.stream().anyMatch(line -> line.matches("Running \\d{2,} bugger tests\\."));
+        boolean failures = lines.stream().anyMatch(line -> line.startsWith("Failed:") || line.startsWith("Passed:"));
+        if (!passed || !counted || failures) {
             problems.add("Bugger tests failed:\n" + String.join("\n", lines));
+        }
+        // The same command without operator permissions must be refused (it is an admin command)
+        if (lines.stream().noneMatch(line -> line.startsWith("(same command as the player without operator permissions answered: Unknown or incomplete command"))) {
+            problems.add("Bugger tests: the command was not refused for a player without operator permissions:\n" + String.join("\n", lines));
         }
     }
 
@@ -235,6 +254,27 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
 
         if (onServer != onClient) {
             problems.add("recipe sync: server has " + onServer + " mailing recipes, client received " + onClient);
+        }
+        // Same recipes, not just as many: ids of the recipes with an Envelope serializer on the server against the
+        // ids of every Envelope recipe the client holds
+        java.util.Set<String> serverIds = singleplayer.getServer().computeOnServer(server ->
+              server.getRecipeManager().getRecipes().stream()
+                    .filter(holder -> holder.id().identifier().getNamespace().equals(Envelope.ID))
+                    .filter(holder -> net.minecraft.core.registries.BuiltInRegistries.RECIPE_SERIALIZER
+                          .getKey(holder.value().getSerializer()).getNamespace().equals(Envelope.ID))
+                    .map(holder -> holder.id().identifier().toString())
+                    .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new)));
+        java.util.Set<String> clientIds = context.computeOnClient(client ->
+              ((FabricRecipeManager) client.level.recipeAccess()).getSynchronizedRecipes().recipes().stream()
+                    .filter(holder -> holder.id().identifier().getNamespace().equals(Envelope.ID))
+                    .map(holder -> holder.id().identifier().toString())
+                    .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new)));
+        if (!serverIds.equals(clientIds)) {
+            java.util.Set<String> missing = new java.util.TreeSet<>(serverIds);
+            missing.removeAll(clientIds);
+            java.util.Set<String> extra = new java.util.TreeSet<>(clientIds);
+            extra.removeAll(serverIds);
+            problems.add("recipe sync: ids differ. Not on the client: " + missing + ". Only on the client: " + extra);
         }
         if (envelopeOnServer != envelopeOnClient) {
             problems.add("recipe sync: server has " + envelopeOnServer + " envelope recipes, client received " + envelopeOnClient);
@@ -311,7 +351,8 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         }
     }
 
-    /** Basic "does it run at all" actions: commands, spawning, item use. Any server log error is a problem. */
+    /** Basic "does it run at all" actions on the server side: a command, spawning and ticking entities, placing and
+     *  removing blocks directly, placing structures. Player interactions are covered by ScreenShots. */
     private static void smoke(ClientGameTestContext context, TestSingleplayerContext singleplayer, Path results, List<String> problems) {
         List<String> lines = new ArrayList<>();
         runAndRecord(singleplayer, lines, problems, "command: envelope mailbox list", server ->
@@ -518,7 +559,9 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
                     mob.setNoAi(true);
                     mob.setPersistenceRequired();
                 }
-                level.addFreshEntity(entity);
+                if (!level.addFreshEntity(entity)) {
+                    throw new IllegalStateException(name + ": the entity was not added to the world");
+                }
                 return entity.getId();
             });
             context.waitTicks(8);
