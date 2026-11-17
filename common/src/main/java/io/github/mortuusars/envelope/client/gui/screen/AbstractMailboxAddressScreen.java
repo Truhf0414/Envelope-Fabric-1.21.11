@@ -22,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public abstract class AbstractMailboxAddressScreen extends AddressTagScreen {
     protected final LocalPlayer player;
@@ -148,7 +149,7 @@ public abstract class AbstractMailboxAddressScreen extends AddressTagScreen {
         int x = 159;
         int y = 4;
 
-        guiGraphics.blitSprite(sprite, leftPos + x, topPos + y, 11, 11);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, leftPos + x, topPos + y, 11, 11);
 
         // Below is rendering of a xp level number with outline
         // Mojang did this with texture, but in our case it needs to be dynamic (because it's configurable)

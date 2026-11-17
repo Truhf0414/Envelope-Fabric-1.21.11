@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class PackageScreen extends AbstractInHandContainerScreen<PackageMenu> {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/package.png");
@@ -26,7 +27,7 @@ public class PackageScreen extends AbstractInHandContainerScreen<PackageMenu> {
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
         if (getMenu().isDestroyedOnClose()) {
-            guiGraphics.blit(TEXTURE, leftPos + 45, topPos + 17, 0, 178, 86, 64);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + 45, topPos + 17, 0, 178, 86, 64, 256, 256);
         }
     }
 }

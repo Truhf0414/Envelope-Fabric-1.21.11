@@ -24,6 +24,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class LetterEditScreen extends Screen {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/letter_and_quill.png");
@@ -79,11 +82,11 @@ public class LetterEditScreen extends Screen {
     }
 
     @Override
-    public void resize(Minecraft minecraft, int width, int height) {
+    public void resize(int width, int height) {
         // Prevent contents reset when window is resized
         FormattedString message = textBox.getEditor().getText();
         int messageCursorPos = textBox.getEditor().getCursorPos();
-        super.resize(minecraft, width, height);
+        super.resize(width, height);
         textBox.getEditor().setText(message);
         textBox.getEditor().setCursorPos(messageCursorPos, false);
     }
@@ -93,31 +96,35 @@ public class LetterEditScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(guiGraphics);
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     // -- Input
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) { // 1.21.11: MouseButtonEvent
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         // Special handling for toolbar, without this clicks will go to another element under the cursor,
         // if toolbar is over that element.
         if (getFocused() instanceof TextBox box && box.formattingToolbarMouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) { // 1.21.11: KeyEvent instead of raw ints
+        int keyCode = event.key();
         if (!(getFocused() instanceof TextBox)) {
-            if (Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode)) {
+            if (Minecraft.getInstance().options.keyInventory.matches(event)) {
                 this.onClose();
                 return true;
             }
         }
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
@@ -142,7 +149,7 @@ public class LetterEditScreen extends Screen {
     protected void saveChanges(boolean fold) {
         String text = textBox.getEditor().getText().toString();
 
-        int slot = this.hand == InteractionHand.MAIN_HAND ? Minecrft.player().getInventory().selected : Inventory.SLOT_OFFHAND;
+        int slot = this.hand == InteractionHand.MAIN_HAND ? Minecrft.player().getInventory().getSelectedSlot() : Inventory.SLOT_OFFHAND;
         new ServerboundLetterEditPacket(slot, text, fold).sendToServer();
     }
 }

@@ -21,7 +21,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
@@ -33,6 +32,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/mailbox.png");
@@ -177,28 +179,20 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
     }
 
     @Override
-    protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
-        super.renderSlot(guiGraphics, slot);
+    protected void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
+        super.renderSlot(guiGraphics, slot, mouseX, mouseY);
 
         // Extend slot highlight for mail slot to cover whole rectangle (mail slot is slightly bigger):
 
-        int mouseX = (int) (Minecrft.get().mouseHandler.xpos()
-              * (double) Minecrft.get().getWindow().getGuiScaledWidth()
-              / (double) Minecrft.get().getWindow().getScreenWidth());
-        int mouseY = (int) (Minecrft.get().mouseHandler.ypos()
-              * (double) Minecrft.get().getWindow().getGuiScaledHeight()
-              / (double) Minecrft.get().getWindow().getScreenHeight());
+        // 1.21.11: renderSlot is given the mouse position, upstream had to work it out from the mouse handler
 
         if (slot.isActive() && slot.index == MailboxBlockEntity.SLOT_MAIL
               && isHovering(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
-            guiGraphics.fillGradient(RenderType.guiOverlay(), slot.x - 1, slot.y - 1,
-                  slot.x + 17, slot.y, 0x80FFFFFF, 0x80FFFFFF, 0);
-            guiGraphics.fillGradient(RenderType.guiOverlay(), slot.x - 1, slot.y,
-                  slot.x, slot.y + 16, 0x80FFFFFF, 0x80FFFFFF, 0);
-            guiGraphics.fillGradient(RenderType.guiOverlay(), slot.x + 16, slot.y,
-                  slot.x + 17, slot.y + 16, 0x80FFFFFF, 0x80FFFFFF, 0);
-            guiGraphics.fillGradient(RenderType.guiOverlay(), slot.x - 1, slot.y + 16,
-                  slot.x + 17, slot.y + 17, 0x80FFFFFF, 0x80FFFFFF, 0);
+            // 1.21.11: RenderType.guiOverlay() is gone; a plain fill drawn after the slot ends up on top of it
+            guiGraphics.fill(slot.x - 1, slot.y - 1, slot.x + 17, slot.y, 0x80FFFFFF);
+            guiGraphics.fill(slot.x - 1, slot.y, slot.x, slot.y + 16, 0x80FFFFFF);
+            guiGraphics.fill(slot.x + 16, slot.y, slot.x + 17, slot.y + 16, 0x80FFFFFF);
+            guiGraphics.fill(slot.x - 1, slot.y + 16, slot.x + 17, slot.y + 17, 0x80FFFFFF);
         }
     }
 
@@ -206,16 +200,16 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         hoveredMail = null;
 
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 512, 256);
 
         int addressBarX = titleLabelX - 18;
         int addressBarWidth = imageWidth - (addressBarX * 2);
         // Left
-        guiGraphics.blit(TEXTURE, leftPos + addressBarX, topPos - 15, 0, imageHeight, 5, 15, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + addressBarX, topPos - 15, 0, imageHeight, 5, 15, 512, 256);
         // Middle
-        guiGraphics.blit(TEXTURE, leftPos + addressBarX + 5, topPos - 15, 5, imageHeight, addressBarWidth - 10, 15, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + addressBarX + 5, topPos - 15, 5, imageHeight, addressBarWidth - 10, 15, 512, 256);
         // Right
-        guiGraphics.blit(TEXTURE, leftPos + addressBarX + addressBarWidth - 5, topPos - 15, 303, imageHeight, 5, 15, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + addressBarX + addressBarWidth - 5, topPos - 15, 303, imageHeight, 5, 15, 512, 256);
 
         List<MailboxMenu.MailInSlot> mail = getMenu().getMail();
 
@@ -237,13 +231,13 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
             }
         } else {
             if (!hadMail && Time.isHalloween()) {
-                guiGraphics.blitSprite(SPIDER_WEB_SPRITE, leftPos + 8, topPos + 18, 117, 144);
-                guiGraphics.blitSprite(SPIDER_SPRITE, leftPos + 22, topPos + 38, 11, 11);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPIDER_WEB_SPRITE, leftPos + 8, topPos + 18, 117, 144);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPIDER_SPRITE, leftPos + 22, topPos + 38, 11, 11);
             }
 
             if (this.hashCode() % 20 == 0) {
                 // Sad face
-                guiGraphics.blit(TEXTURE, leftPos + 59, topPos + 92, 348, 0, 17, 9, 512, 256);
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + 59, topPos + 92, 348, 0, 17, 9, 512, 256);
             }
         }
 
@@ -252,23 +246,23 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         Slot pigeonFoodSlot = getMenu().getSlot(MailboxBlockEntity.SLOT_PIGEON_FOOD);
         if (!pigeonFoodSlot.hasItem()) {
             // Seeds slot placeholder
-            guiGraphics.blit(TEXTURE, leftPos + pigeonFoodSlot.x, topPos + pigeonFoodSlot.y, 314, 0, 16, 16, 512, 256);
-        } else if (Minecrft.level().isDay() && getMenu().getBlockEntity().isAvailableForPickup()) {
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + pigeonFoodSlot.x, topPos + pigeonFoodSlot.y, 314, 0, 16, 16, 512, 256);
+        } else if (Minecrft.level().isBrightOutside() && getMenu().getBlockEntity().isAvailableForPickup()) {
             // Sun
-            guiGraphics.blit(TEXTURE, leftPos + pigeonFoodSlot.x - 22, topPos + pigeonFoodSlot.y - 1, 365, 0, 18, 18, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + pigeonFoodSlot.x - 22, topPos + pigeonFoodSlot.y - 1, 365, 0, 18, 18, 512, 256);
         }
         Slot batFoodSlot = getMenu().getSlot(MailboxBlockEntity.SLOT_BAT_FOOD);
         if (!batFoodSlot.hasItem()) {
             // Spider eye slot placeholder
-            guiGraphics.blit(TEXTURE, leftPos + batFoodSlot.x, topPos + batFoodSlot.y, 314, 16, 16, 16, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + batFoodSlot.x, topPos + batFoodSlot.y, 314, 16, 16, 16, 512, 256);
         }
-        else if (Minecrft.level().isNight() && getMenu().getBlockEntity().isAvailableForPickup()) {
+        else if (Minecrft.level().isDarkOutside() && getMenu().getBlockEntity().isAvailableForPickup()) {
             // Moon
-            guiGraphics.blit(TEXTURE, leftPos + batFoodSlot.x - 22, topPos + batFoodSlot.y - 1, 365, 18, 18, 18, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + batFoodSlot.x - 22, topPos + batFoodSlot.y - 1, 365, 18, 18, 18, 512, 256);
         }
         Slot mailSlot = getMenu().getSlot(MailboxBlockEntity.SLOT_MAIL);
         if (!mailSlot.hasItem()) {
-            guiGraphics.blit(TEXTURE, leftPos + mailSlot.x - 1, topPos + mailSlot.y - 1, 330, 0, 18, 18, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + mailSlot.x - 1, topPos + mailSlot.y - 1, 330, 0, 18, 18, 512, 256);
         }
 
         renderScrollBar(guiGraphics, partialTick, mouseX, mouseY);
@@ -276,21 +270,21 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0x404040, false);
+        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
 
         int inboxLabelX = 68 - font.width(inboxLabel) / 2;
-        guiGraphics.drawString(font, inboxLabel, inboxLabelX, 6, 0x404040, false);
+        guiGraphics.drawString(font, inboxLabel, inboxLabelX, 6, 0xFF404040, false);
 
         if (getMenu().getMail().isEmpty()) {
             Component empty = Component.translatable("gui.envelope.mailbox.empty");
             int emptyLabelX = 68 - font.width(empty) / 2;
-            guiGraphics.drawString(font, empty, emptyLabelX, 80, 0x606060, false);
+            guiGraphics.drawString(font, empty, emptyLabelX, 80, 0xFF606060, false);
         }
 
         int sendLabelX = 220 - font.width(sendLabel) / 2;
-        guiGraphics.drawString(font, sendLabel, sendLabelX, 6, 0x404040, false);
+        guiGraphics.drawString(font, sendLabel, sendLabelX, 6, 0xFF404040, false);
 
-        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x404040, false);
+        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
     }
 
     protected void renderMailButton(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY, MailboxMenu.MailInSlot mailInSlot, int x, int y) {
@@ -298,12 +292,12 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         ItemStack mail = mailInSlot.mail();
         MailIcon icon = MailIcon.create(mail);
 
-        guiGraphics.blitSprite(REGULAR_MAIL_BUTTON_SPRITES.get(true, isHovered), x, y, 0, 117, 18);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, REGULAR_MAIL_BUTTON_SPRITES.get(true, isHovered), x, y, 0, 117, 18);
 
         guiGraphics.renderItem(mail, x + 2, y + 1);
 
         Identifier iconSprite = isHovered ? icon.sprites().enabledFocused() : icon.sprites().enabled();
-        guiGraphics.blitSprite(iconSprite, x + 23, y + 4, 0, 10, 10);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, iconSprite, x + 23, y + 4, 0, 10, 10);
 
         if (!icon.icon().isEmpty()) {
             guiGraphics.drawString(font, icon.icon(), x + 26, y + 5, 0xFFC6B38F, false);
@@ -327,29 +321,21 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         }
 
         // Top
-        guiGraphics.blit(TEXTURE, scrollThumb.getX(), scrollThumb.getY(),
-              308, state * SCROLL_THUMB_Y_OFFSET, scrollThumb.getWidth(), SCROLL_THUMB_TOP_HEIGHT, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, scrollThumb.getX(), scrollThumb.getY(), 308, state * SCROLL_THUMB_Y_OFFSET, scrollThumb.getWidth(), SCROLL_THUMB_TOP_HEIGHT, 512, 256);
 
         // Middle
         int middlePartsCount = (scrollThumb.getHeight() - SCROLL_THUMB_TOP_HEIGHT - SCROLL_THUMB_BOT_HEIGHT) / SCROLL_THUMB_MID_HEIGHT;
 
         for (int i = 0; i < middlePartsCount; i++) {
-            guiGraphics.blit(TEXTURE, scrollThumb.getX(),
-                  scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + i * SCROLL_THUMB_MID_HEIGHT,
-                  308, state * SCROLL_THUMB_Y_OFFSET + SCROLL_THUMB_TOP_HEIGHT,
-                  scrollThumb.getWidth(), SCROLL_THUMB_MID_HEIGHT, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, scrollThumb.getX(), scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + i * SCROLL_THUMB_MID_HEIGHT, 308, state * SCROLL_THUMB_Y_OFFSET + SCROLL_THUMB_TOP_HEIGHT, scrollThumb.getWidth(), SCROLL_THUMB_MID_HEIGHT, 512, 256);
         }
 
         // Bottom
-        guiGraphics.blit(TEXTURE, scrollThumb.getX(), scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + (middlePartsCount * SCROLL_THUMB_MID_HEIGHT),
-              308, SCROLL_THUMB_TOP_HEIGHT + SCROLL_THUMB_MID_HEIGHT + state * SCROLL_THUMB_Y_OFFSET,
-              scrollThumb.getWidth(), SCROLL_THUMB_BOT_HEIGHT, 512, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, scrollThumb.getX(), scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + (middlePartsCount * SCROLL_THUMB_MID_HEIGHT), 308, SCROLL_THUMB_TOP_HEIGHT + SCROLL_THUMB_MID_HEIGHT + state * SCROLL_THUMB_Y_OFFSET, scrollThumb.getWidth(), SCROLL_THUMB_BOT_HEIGHT, 512, 256);
 
         if (!canScroll()) {
             // Special case to make scroll thumb fill remaining gap in the bottom
-            guiGraphics.blit(TEXTURE, scrollThumb.getX(), scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + (middlePartsCount * SCROLL_THUMB_MID_HEIGHT) + 1,
-                  308, SCROLL_THUMB_TOP_HEIGHT + SCROLL_THUMB_MID_HEIGHT + state * SCROLL_THUMB_Y_OFFSET,
-                  scrollThumb.getWidth(), SCROLL_THUMB_BOT_HEIGHT, 512, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, scrollThumb.getX(), scrollThumb.getY() + SCROLL_THUMB_TOP_HEIGHT + (middlePartsCount * SCROLL_THUMB_MID_HEIGHT) + 1, 308, SCROLL_THUMB_TOP_HEIGHT + SCROLL_THUMB_MID_HEIGHT + state * SCROLL_THUMB_Y_OFFSET, scrollThumb.getWidth(), SCROLL_THUMB_BOT_HEIGHT, 512, 256);
         }
     }
 
@@ -366,12 +352,12 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         ItemStack mail = hoveredMail.mail();
 
         if (x >= leftPos + 8 && x < leftPos + 28) {
-            guiGraphics.renderTooltip(font, getTooltipFromContainerItem(mail), mail.getTooltipImage(), x, y);
+            guiGraphics.setTooltipForNextFrame(font, getTooltipFromContainerItem(mail), mail.getTooltipImage(), x, y);
             return;
         }
 
         if (x >= leftPos + 31 && x < leftPos + 41) {
-            guiGraphics.renderTooltip(font, MailIcon.create(mail).name(), x, y);
+            guiGraphics.setTooltipForNextFrame(font, MailIcon.create(mail).name(), x, y);
             return;
         }
 
@@ -396,7 +382,7 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         }
 
         if (!tooltip.isEmpty()) {
-            guiGraphics.renderTooltip(font, tooltip, Optional.empty(), x, y);
+            guiGraphics.setTooltipForNextFrame(font, tooltip, Optional.empty(), x, y);
         }
     }
 
@@ -419,7 +405,8 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
 
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) { // 1.21.11: KeyEvent instead of raw ints
+        int keyCode = event.key();
         if (keyCode == InputConstants.KEY_HOME) {
             scroll(Integer.MIN_VALUE);
             return true;
@@ -438,11 +425,14 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
         }
 
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) { // 1.21.11: MouseButtonEvent
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (button == InputConstants.MOUSE_BUTTON_LEFT && hoveredMail != null) {
             int index = getMenu().getMail().indexOf(hoveredMail);
             if (index == -1) return false;
@@ -476,19 +466,25 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) { // 1.21.11: MouseButtonEvent
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         isDraggingScrollbar = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) { // 1.21.11: MouseButtonEvent
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (!isDraggingScrollbar || button != InputConstants.MOUSE_BUTTON_LEFT) {
-            return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+            return super.mouseDragged(event, dragX, dragY);
         }
 
         dragDelta += dragY;

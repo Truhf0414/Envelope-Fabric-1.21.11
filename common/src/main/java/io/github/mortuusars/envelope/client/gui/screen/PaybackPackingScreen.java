@@ -1,6 +1,5 @@
 package io.github.mortuusars.envelope.client.gui.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.util.Colors;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class PaybackPackingScreen extends AbstractInHandContainerScreen<PaybackPackingMenu> {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/payback_packing.png");
@@ -61,32 +61,27 @@ public class PaybackPackingScreen extends AbstractInHandContainerScreen<PaybackP
     }
 
     @Override
-    protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
+    protected void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
         if (slot instanceof RequestedItemSlot requestedItemSlot) {
             if (!slot.hasItem()) {
                 ItemStack preview = requestedItemSlot.getIngredient().getRollingDisplayedStack();
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(0, 0, -100);
+                guiGraphics.pose().pushMatrix();
                 guiGraphics.renderItem(preview, slot.x, slot.y);
                 guiGraphics.renderItemDecorations(Minecrft.get().font, preview, slot.x, slot.y);
                 if (requestedItemSlot.getIngredient().items().unwrapKey().isPresent()) {
-                    guiGraphics.pose().translate(0, 0, 200);
                     guiGraphics.drawString(font, "#", slot.x + 1 + 19 - 2 - font.width("#"), slot.y - 1, Colors.WHITE, true);
                 }
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().popMatrix();
             }
 
             boolean isFulfilled = requestedItemSlot.getIngredient().test(slot.getItem());
 
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 150);
-            RenderSystem.enableBlend();
-            guiGraphics.blit(TEXTURE, slot.x - 1, slot.y - 1, 176, isFulfilled ? 18 : 0, 18, 18);
-            RenderSystem.disableBlend();
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, slot.x - 1, slot.y - 1, 176, isFulfilled ? 18 : 0, 18, 18, 256, 256);
+            guiGraphics.pose().popMatrix();
         }
 
-        super.renderSlot(guiGraphics, slot);
+        super.renderSlot(guiGraphics, slot, mouseX, mouseY);
     }
 
     @Override
@@ -103,7 +98,7 @@ public class PaybackPackingScreen extends AbstractInHandContainerScreen<PaybackP
                   })
                   .orElseGet(() -> getTooltipFromContainerItem(stack));
 
-            guiGraphics.renderTooltip(this.font, lines, stack.getTooltipImage(), x, y);
+            guiGraphics.setTooltipForNextFrame(this.font, lines, stack.getTooltipImage(), x, y);
         } else {
             super.renderTooltip(guiGraphics, x, y);
         }
@@ -114,7 +109,7 @@ public class PaybackPackingScreen extends AbstractInHandContainerScreen<PaybackP
         List<Component> components = super.getTooltipFromContainerItem(stack);
 
         if (hoveredSlot instanceof PreviewSlot) {
-            PaybackPackageItem.appendPaybackSubjectHoverText(components, getMenu().getPaybackSubject());
+            PaybackPackageItem.appendPaybackSubjectHoverText(components::add, getMenu().getPaybackSubject());
         }
 
         return components;

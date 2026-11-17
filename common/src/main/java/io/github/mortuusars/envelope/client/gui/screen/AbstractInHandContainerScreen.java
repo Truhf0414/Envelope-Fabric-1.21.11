@@ -1,6 +1,5 @@
 package io.github.mortuusars.envelope.client.gui.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.envelope.world.inventory.AbstractInHandContainerMenu;
 import io.github.mortuusars.envelope.world.inventory.slot.DisabledSlot;
 import io.github.mortuusars.envelope.world.inventory.slot.PickupOnlySlot;
@@ -11,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class AbstractInHandContainerScreen<T extends AbstractInHandContainerMenu> extends AbstractContainerScreen<T> {
     private final Identifier texture;
@@ -47,30 +47,24 @@ public class AbstractInHandContainerScreen<T extends AbstractInHandContainerMenu
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(texture, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
-        super.renderSlot(guiGraphics, slot);
+    protected void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
+        super.renderSlot(guiGraphics, slot, mouseX, mouseY);
         renderSlotOverlays(guiGraphics, slot);
     }
 
     protected void renderSlotOverlays(GuiGraphics guiGraphics, Slot slot) {
         if (slot instanceof PreviewSlot) {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 300);
-            RenderSystem.enableBlend();
-            guiGraphics.blitSprite(PreviewSlot.OVERLAY_SPRITE, slot.x - 1, slot.y - 1, 18, 18);
-            RenderSystem.disableBlend();
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, PreviewSlot.OVERLAY_SPRITE, slot.x - 1, slot.y - 1, 18, 18);
+            guiGraphics.pose().popMatrix();
         } else if (shouldRenderDisabledOverlayOver(slot)) {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 300);
-            RenderSystem.enableBlend();
-            guiGraphics.blitSprite(DisabledSlot.OVERLAY_SPRITE, slot.x - 1, slot.y - 1, 18, 18);
-            RenderSystem.disableBlend();
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, DisabledSlot.OVERLAY_SPRITE, slot.x - 1, slot.y - 1, 18, 18);
+            guiGraphics.pose().popMatrix();
         }
     }
 

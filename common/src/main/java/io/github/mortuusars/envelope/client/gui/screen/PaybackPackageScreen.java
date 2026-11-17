@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class PaybackPackageScreen extends AbstractInHandContainerScreen<PaybackPackageMenu> {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/payback_package.png");
@@ -32,7 +33,7 @@ public class PaybackPackageScreen extends AbstractInHandContainerScreen<PaybackP
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
         if (getMenu().isDestroyedOnClose()) {
-            guiGraphics.blit(TEXTURE, leftPos + 45, topPos + 17, 0, 178, 86, 64);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + 45, topPos + 17, 0, 178, 86, 64, 256, 256);
         }
     }
 
@@ -41,7 +42,7 @@ public class PaybackPackageScreen extends AbstractInHandContainerScreen<PaybackP
         List<Component> components = super.getTooltipFromContainerItem(stack);
 
         if (hoveredSlot instanceof PreviewSlot) {
-            PaybackPackageItem.appendPaybackSubjectHoverText(components, getMenu().getPaybackSubject());
+            PaybackPackageItem.appendPaybackSubjectHoverText(components::add, getMenu().getPaybackSubject());
         }
 
         return components;

@@ -35,16 +35,16 @@ public class ServiceAddressIngredientRenderer implements IIngredientRenderer<Ser
         String icon = font.substrByWidth(FormattedText.of(AddressFormatter.getIcon(ingredient)), 16).getString();
 
         text(guiGraphics, font, icon, 9 - font.width(icon) / 2, 0);
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(8 - font.width(name) / 2f + 0.5f, 0, 0);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(8 - font.width(name) / 2f + 0.5f, 0);
         text(guiGraphics, font, name, 0, 7);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     private static void text(GuiGraphics guiGraphics, Font font, String string, int x, int y) {
         int mainColor = Colors.ADDRESS_NEUTRAL;
-        int shadowColor = 0x453723;
-        int outlineColor = 0x63533C;
+        int shadowColor = 0xFF453723; // 1.21.11: text with alpha 0 is not drawn
+        int outlineColor = 0xFF63533C;
 
         guiGraphics.drawString(font, string, x - 1, y, outlineColor, false);
         guiGraphics.drawString(font, string, x - 1, y - 1, outlineColor, false);

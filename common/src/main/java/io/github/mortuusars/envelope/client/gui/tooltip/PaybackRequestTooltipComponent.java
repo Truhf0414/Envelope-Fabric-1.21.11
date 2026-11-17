@@ -11,6 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public record PaybackRequestTooltipComponent(PaybackRequest paybackRequest) implements ClientTooltipComponent {
     public static final Identifier SLOT_SPRITE = Envelope.resource("tooltip/payback/slot");
@@ -37,12 +38,12 @@ public record PaybackRequestTooltipComponent(PaybackRequest paybackRequest) impl
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(Font font) { // 1.21.11: takes the font
         return 26;
     }
 
     @Override
-    public void renderImage(Font font, int x, int y, GuiGraphics guiGraphics) {
+    public void renderImage(Font font, int x, int y, int width, int height, GuiGraphics guiGraphics) { // 1.21.11: also gets the tooltip size
         ItemStack tagPreview = switch (paybackRequest().duration()) {
             case SHORT -> PAYBACK_TAG_SHORT;
             case MEDIUM -> PAYBACK_TAG_MEDIUM;
@@ -61,20 +62,19 @@ public record PaybackRequestTooltipComponent(PaybackRequest paybackRequest) impl
 
             if (i == 0) {
                 // Left border
-                guiGraphics.blitSprite(SLOT_SPRITE, 24, 24, 0, 0, slotX - 3, y, 3, 24);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, 24, 24, 0, 0, slotX - 3, y, 3, 24);
             }
 
             if (i == slots - 1) {
                 // Right border
-                guiGraphics.blitSprite(SLOT_SPRITE, 24, 24, 21, 0, slotX + 18, y, 3, 24);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, 24, 24, 21, 0, slotX + 18, y, 3, 24);
             }
 
-            guiGraphics.blitSprite(SLOT_SPRITE, 24, 24, 3, 0, slotX, y, 18, 24);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, 24, 24, 3, 0, slotX, y, 18, 24);
             guiGraphics.renderFakeItem(stack, slotX + 1, slotY + 1, 0);
             guiGraphics.renderItemDecorations(font, stack, slotX + 1, slotY + 1);
 
             if (ingredient.items().unwrapKey().isPresent()) {
-                guiGraphics.pose().translate(0, 0, 200);
                 guiGraphics.drawString(font, "#", slotX + 1 + 19 - 2 - font.width("#"), y + 1, Colors.WHITE, true);
             }
         }

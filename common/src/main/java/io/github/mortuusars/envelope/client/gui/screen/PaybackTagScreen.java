@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMenu> {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/payback_tag.png");
@@ -124,15 +126,15 @@ public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMe
         int x = leftPos - size - 4;
         int y = topPos + 38 - size / 2;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x + (float) size / 2, y + (float) size / 2, 0);
-        guiGraphics.pose().scale(scale, scale, scale);
-        guiGraphics.pose().translate(-8, -8, 0);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(x + (float) size / 2, y + (float) size / 2);
+        guiGraphics.pose().scale(scale, scale);
+        guiGraphics.pose().translate(-8, -8);
         guiGraphics.renderItem(target, 0, 0);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
 
         if (isHovering(x - leftPos, y - topPos, size, size, mouseX, mouseY)) {
-            guiGraphics.renderTooltip(font, target, mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(font, target, mouseX, mouseY);
         }
     }
 
@@ -140,9 +142,12 @@ public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMe
 
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) { // 1.21.11: MouseButtonEvent
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         lastQuickMoved = ItemStack.EMPTY; // Prevents fast shift-clicking moving more items that needed
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -162,8 +167,9 @@ public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMe
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (super.keyPressed(keyCode, scanCode, modifiers)) {
+    public boolean keyPressed(KeyEvent event) { // 1.21.11: KeyEvent instead of raw ints
+        int keyCode = event.key();
+        if (super.keyPressed(event)) {
             return true;
         }
 

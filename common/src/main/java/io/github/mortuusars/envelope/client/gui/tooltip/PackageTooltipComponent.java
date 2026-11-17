@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class PackageTooltipComponent implements ClientTooltipComponent {
     public static final Identifier BACKGROUND_SPRITE = Envelope.resource("tooltip/package/background");
@@ -25,13 +26,13 @@ public class PackageTooltipComponent implements ClientTooltipComponent {
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(Font font) { // 1.21.11: takes the font
         return BG_HEIGHT + 3;
     }
 
     @Override
-    public void renderImage(Font font, int x, int y, GuiGraphics guiGraphics) {
-        guiGraphics.blitSprite(BACKGROUND_SPRITE, x, y, BG_WIDTH, BG_HEIGHT);
+    public void renderImage(Font font, int x, int y, int width, int height, GuiGraphics guiGraphics) { // 1.21.11: also gets the tooltip size
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND_SPRITE, x, y, BG_WIDTH, BG_HEIGHT);
 
         for (int row = 0; row < 2; row++) {
             for (int column = 0; column < 3; column++) {

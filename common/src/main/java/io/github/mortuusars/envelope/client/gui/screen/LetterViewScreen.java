@@ -1,6 +1,5 @@
 package io.github.mortuusars.envelope.client.gui.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
@@ -24,6 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class LetterViewScreen extends Screen {
     public static final Identifier REGULAR_TEXTURE = Envelope.resource("textures/gui/letter.png");
@@ -94,12 +96,9 @@ public class LetterViewScreen extends Screen {
         }
 
         if (isTattered) {
-            RenderSystem.enableBlend();
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 200);
-            guiGraphics.blit(TATTERED_OVERLAY, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-            guiGraphics.pose().popPose();
-            RenderSystem.disableBlend();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TATTERED_OVERLAY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+            guiGraphics.pose().popMatrix();
         }
 
         @Nullable Style style = getComponentStyleAt(mouseX, mouseY);
@@ -110,7 +109,7 @@ public class LetterViewScreen extends Screen {
                   && mouseX >= x && mouseX < x + maxTextWidth
                   && mouseY >= y && mouseY < y + maxTextHeight) {
                 List<FormattedCharSequence> leftovers = lines.stream().skip(maxTextLines).toList();
-                guiGraphics.renderTooltip(font, leftovers, mouseX, mouseY);
+                guiGraphics.setTooltipForNextFrame(font, leftovers, mouseX, mouseY);
             }
         }
     }
@@ -118,7 +117,7 @@ public class LetterViewScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(guiGraphics);
-        guiGraphics.blit(getBackgroundTexture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, getBackgroundTexture(), leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     public Identifier getBackgroundTexture() {
@@ -142,7 +141,7 @@ public class LetterViewScreen extends Screen {
             int clickedLine = y / font.lineHeight;
             if (clickedLine >= 0 && clickedLine < lines.size()) {
                 FormattedCharSequence text = lines.get(clickedLine);
-                return font.getSplitter().componentStyleAtWidth(text, x);
+                return styleAtWidth(text, x);
             }
 
             return null;
@@ -155,7 +154,7 @@ public class LetterViewScreen extends Screen {
     public void onClose() {
         super.onClose();
         if (hand != null) {
-            int slot = this.hand == InteractionHand.MAIN_HAND ? Minecrft.player().getInventory().selected : Inventory.SLOT_OFFHAND;
+            int slot = this.hand == InteractionHand.MAIN_HAND ? Minecrft.player().getInventory().getSelectedSlot() : Inventory.SLOT_OFFHAND;
             new ServerboundItemClosedPacket(slot).sendToServer();
         }
     }
@@ -163,15 +162,19 @@ public class LetterViewScreen extends Screen {
     // -- Input
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode)) {
+    public boolean keyPressed(KeyEvent event) { // 1.21.11: KeyEvent instead of raw ints
+        int keyCode = event.key();
+        if (Minecraft.getInstance().options.keyInventory.matches(event)) {
             this.onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
-    public boolean mouseClicked(double x, double y, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) { // 1.21.11: MouseButtonEvent
+        double x = event.x();
+        double y = event.y();
+        int button = event.button();
         if (button == 0) {
             @Nullable Style style = getComponentStyleAt(x, y);
             if (handleComponentClicked(style)) {
@@ -179,7 +182,25 @@ public class LetterViewScreen extends Screen {
             }
         }
 
-        return super.mouseClicked(x, y, button);
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    /**
+     * 1.21.11: StringSplitter#componentStyleAtWidth was removed. Same walk as 1.21.1: the style of the first
+     * character that goes past the given width.
+     */
+    private @Nullable Style styleAtWidth(FormattedCharSequence text, int maxWidth) {
+        Style[] result = new Style[1];
+        int[] width = new int[1];
+        text.accept((index, style, codePoint) -> {
+            width[0] += font.width(FormattedCharSequence.codepoint(codePoint, style));
+            if (width[0] > maxWidth) {
+                result[0] = style;
+                return false;
+            }
+            return true;
+        });
+        return result[0];
     }
 
     public boolean handleComponentClicked(@Nullable Style style) {
@@ -192,11 +213,17 @@ public class LetterViewScreen extends Screen {
             return false;
         }
 
-        boolean handled = super.handleComponentClicked(style);
-        if (handled && clickEvent.getAction() == ClickEvent.Action.RUN_COMMAND) {
+        // 1.21.11: Screen#handleComponentClicked was removed; screens call the default click handling themselves
+        // (see vanilla BookViewScreen). Like 1.21.1, a shift-click is not treated as a click on the event.
+        if (Minecraft.getInstance().hasShiftDown()) {
+            return false;
+        }
+
+        defaultHandleGameClickEvent(clickEvent, Minecraft.getInstance(), this);
+        if (clickEvent instanceof ClickEvent.RunCommand) {
             onClose();
         }
 
-        return handled;
+        return true;
     }
 }
