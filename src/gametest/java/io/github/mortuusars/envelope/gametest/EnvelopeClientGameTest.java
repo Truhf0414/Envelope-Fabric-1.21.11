@@ -53,6 +53,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
             runBuggerTests(singleplayer, results, problems);
             checkRecipeSync(context, singleplayer, results, problems);
             smoke(context, singleplayer, results, problems);
+            checkAssets(context, results, problems);
 
             EntityShots.run(context, singleplayer);
             ScreenShots.run(context, singleplayer, problems);
@@ -138,6 +139,46 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         }
         if (envelopeOnServer == 0) {
             problems.add("recipe sync: no envelope recipes are loaded on the server, the comparison proves nothing");
+        }
+    }
+
+    /** Phase 4 turns this on: until the item definitions exist, every item is expected to have no model. */
+    private static final boolean ITEM_MODELS_REQUIRED = false;
+
+    /**
+     * Every registered Envelope item must have an item model definition that resolves (1.21.4+: assets/&lt;ns&gt;/items)
+     * and a translated name; every Envelope block must have a translated name.
+     */
+    private static void checkAssets(ClientGameTestContext context, Path results, List<String> problems) {
+        List<String> lines = context.computeOnClient(client -> {
+            List<String> output = new ArrayList<>();
+            int items = 0, missingModels = 0, missingNames = 0;
+            for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+                net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+                if (!id.getNamespace().equals(Envelope.ID)) continue;
+                items++;
+                net.minecraft.resources.Identifier modelId = new ItemStack(item).get(net.minecraft.core.component.DataComponents.ITEM_MODEL);
+                boolean hasModel = modelId != null
+                      && !(client.getModelManager().getItemModel(modelId) instanceof net.minecraft.client.renderer.item.MissingItemModel);
+                boolean hasName = net.minecraft.client.resources.language.I18n.exists(item.getDescriptionId());
+                if (!hasModel) missingModels++;
+                if (!hasName) missingNames++;
+                output.add((hasModel ? "model ok  " : "NO MODEL  ") + (hasName ? "name ok  " : "NO NAME  ") + id);
+            }
+            output.add(0, "items: " + items + ", without item model: " + missingModels + ", without name: " + missingNames);
+            return output;
+        });
+        write(results.resolve("assets.txt"), lines);
+
+        String summary = lines.getFirst();
+        if (summary.startsWith("items: 0")) {
+            problems.add("assets: no envelope items found, the check looked at nothing");
+        }
+        if (!summary.endsWith("without name: 0")) {
+            problems.add("assets: some items have no translated name -> " + summary);
+        }
+        if (ITEM_MODELS_REQUIRED && !summary.contains("without item model: 0,")) {
+            problems.add("assets: some items have no item model -> " + summary);
         }
     }
 
