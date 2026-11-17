@@ -250,6 +250,36 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
                 level.destroyBlock(pos, false);
             }
         });
+        // Phase 4: every Envelope structure must generate when placed (old-format pieces go through the data fixer,
+        // and a jigsaw pool or processor that no longer parses only shows up when the structure is built).
+        List<String> structures = singleplayer.getServer().computeOnServer(server ->
+              server.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.STRUCTURE).listElementIds()
+                    .map(key -> key.identifier()).filter(id -> id.getNamespace().equals(Envelope.ID)).map(String::valueOf).sorted().toList());
+        if (structures.isEmpty()) {
+            problems.add("smoke: no envelope structures are registered, nothing was placed");
+        }
+        int index = 0;
+        for (String structure : structures) {
+            // Inside the loaded area around the player (spawn), spread out on a ring so they do not overlap much
+            double angle = Math.PI * 2 * index++ / structures.size();
+            int x = (int) (Math.cos(angle) * 48);
+            int z = (int) (Math.sin(angle) * 48);
+            runAndRecord(singleplayer, lines, problems, "place structure " + structure, server -> {
+                int[] result = {Integer.MIN_VALUE};
+                List<String> feedback = new ArrayList<>();
+                net.minecraft.commands.CommandSource capture = new net.minecraft.commands.CommandSource() {
+                    @Override public void sendSystemMessage(net.minecraft.network.chat.Component message) { feedback.add(message.getString()); }
+                    @Override public boolean acceptsSuccess() { return true; }
+                    @Override public boolean acceptsFailure() { return true; }
+                    @Override public boolean shouldInformAdmins() { return false; }
+                };
+                server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSource(capture)
+                      .withCallback((success, value) -> result[0] = success ? value : -1), "place structure " + structure + " " + x + " -60 " + z);
+                if (result[0] <= 0) {
+                    throw new IllegalStateException("command result " + result[0] + ", feedback: " + feedback);
+                }
+            });
+        }
         write(results.resolve("smoke.txt"), lines);
     }
 
