@@ -37,6 +37,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.NestedLootTable;
 import net.neoforged.fml.config.ModConfig;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 
 public class EnvelopeFabric implements ModInitializer {
     @Override
@@ -44,6 +45,18 @@ public class EnvelopeFabric implements ModInitializer {
         // Port: Mortaar is vendored (no longer its own mod), so its initializer runs first, from here.
         new io.github.mortuusars.envelope.lib.mortaar.fabric.MortaarFabric().onInitialize();
         Envelope.init();
+
+        // 1.21.11 (port decision D-b): vanilla stopped sending recipes to clients in 1.21.2. Opt Envelope's own
+        // recipe serializers into Fabric API's recipe sync, so JEI on the client can show mailing recipes and the
+        // special crafting recipes. Must run on both sides (see RecipeSynchronization).
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.LETTER_CLONING.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.ADDRESS_TAG_APPLICATION.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.PAYBACK_TAG_APPLICATION.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.SEAL_STAMP_DYEING.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.COMPONENT_TRANSFERRING.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.MAIL_CRAFTING.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.MAIL_LETTER_BROADCASTING.get());
+        RecipeSynchronization.synchronizeRecipeSerializer(Envelope.RecipeSerializers.MAIL_PAYBACK_REQUEST_CANCELING.get());
 
         ConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.SERVER, Config.Server.SPEC);
         ConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.COMMON, Config.Common.SPEC);

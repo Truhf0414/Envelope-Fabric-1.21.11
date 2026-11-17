@@ -12,9 +12,4 @@ public class ServiceLetterMeaningSubtypeInterpreter implements ISubtypeInterpret
     public @Nullable Object getSubtypeData(ItemStack ingredient, UidContext context) {
         return ingredient.get(Envelope.DataComponents.SERVICE_LETTER_MEANING);
     }
-
-    @Override
-    public @NotNull String getLegacyStringSubtypeInfo(ItemStack ingredient, UidContext context) {
-        return "";
-    }
 }

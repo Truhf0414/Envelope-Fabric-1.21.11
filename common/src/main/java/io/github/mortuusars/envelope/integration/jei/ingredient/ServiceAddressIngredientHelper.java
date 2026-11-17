@@ -22,14 +22,13 @@ public class ServiceAddressIngredientHelper implements IIngredientHelper<Service
         return "Address";
     }
 
-    @SuppressWarnings("removal")
     @Override
-    public @NotNull String getUniqueId(ServiceAddress ingredient, UidContext context) {
+    public @NotNull Object getUid(ServiceAddress ingredient, UidContext context) { // JEI 27: replaces getUniqueId
         return ingredient.getString();
     }
 
     @Override
-    public @NotNull Identifier getResourceLocation(ServiceAddress ingredient) {
+    public @NotNull Identifier getIdentifier(ServiceAddress ingredient) { // JEI 27: renamed from getResourceLocation
         return ingredient.getDefinitionHolder()
               .unwrapKey()
               .map(ResourceKey::identifier)

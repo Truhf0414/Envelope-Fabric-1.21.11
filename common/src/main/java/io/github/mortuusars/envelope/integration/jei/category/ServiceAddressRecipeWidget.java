@@ -41,9 +41,8 @@ public class ServiceAddressRecipeWidget implements IRecipeWidget {
         return area.position();
     }
 
-    @SuppressWarnings("removal")
     @Override
-    public void draw(GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void drawWidget(GuiGraphics guiGraphics, double mouseX, double mouseY) { // JEI 27: draw was renamed
         int x = area.position().x() + area.width() / 2 - textWidth / 2;
         int y = area.position().y();
 

@@ -11,8 +11,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.List;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
+import io.github.mortuusars.envelope.integration.jei.util.JeiDisplays;
 
 public class LetterCloningRecipeExtension implements ICraftingCategoryExtension<LetterCloningRecipe> {
+    // 1.21.11 (JEI 27): extensions must also describe their inputs as slot displays (used for recipe lookups)
+    @Override
+    public List<SlotDisplay> getIngredients(RecipeHolder<LetterCloningRecipe> holder) {
+        return List.of(new SlotDisplay.ItemSlotDisplay(Envelope.Items.LETTER.get()),
+              new SlotDisplay.ItemSlotDisplay(Envelope.Items.LETTER_AND_QUILL.get()));
+    }
+
     @Override
     public void setRecipe(RecipeHolder<LetterCloningRecipe> holder, IRecipeLayoutBuilder builder,
                           ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {

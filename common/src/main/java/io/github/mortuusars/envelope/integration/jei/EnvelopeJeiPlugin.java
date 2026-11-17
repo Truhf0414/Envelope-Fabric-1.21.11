@@ -33,6 +33,8 @@ import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import net.fabricmc.fabric.api.recipe.v1.FabricRecipeManager;
+import java.util.Collection;
 
 @JeiPlugin
 public class EnvelopeJeiPlugin implements IModPlugin {
@@ -62,6 +64,16 @@ public class EnvelopeJeiPlugin implements IModPlugin {
         runtime = null;
     }
 
+    /**
+     * 1.21.11: recipes are no longer sent to clients by vanilla (since 1.21.2), so the client level has no recipe
+     * manager to ask. Mailing recipes are sent by Fabric API's recipe sync instead (the serializers are opted in
+     * with RecipeSynchronization in EnvelopeFabric) and read from the synchronized set here.
+     */
+    private static Collection<RecipeHolder<MailRecipe>> mailingRecipes() {
+        return ((FabricRecipeManager) Minecrft.level().recipeAccess()).getSynchronizedRecipes()
+              .getAllOfType(Envelope.RecipeTypes.MAILING.get());
+    }
+
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new MailingRecipeCategory(registration.getJeiHelpers()));
@@ -75,7 +87,7 @@ public class EnvelopeJeiPlugin implements IModPlugin {
     @Override
     public void registerIngredients(IModIngredientRegistration registration) {
         if (Config.Client.JEI_SERVICE_ADDRESS_INGREDIENT.get()) {
-            List<ServiceAddress> addressesWithRecipes = Minecrft.level().getRecipeManager().getAllRecipesFor(Envelope.RecipeTypes.MAILING.get())
+            List<ServiceAddress> addressesWithRecipes = mailingRecipes()
                   .stream()
                   .map(recipe -> recipe.value().getAddress())
                   .distinct()
@@ -111,9 +123,7 @@ public class EnvelopeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<RecipeHolder<MailRecipe>> mailingRecipes = Minecrft.level()
-              .getRecipeManager()
-              .getAllRecipesFor(Envelope.RecipeTypes.MAILING.get())
+        List<RecipeHolder<MailRecipe>> mailingRecipes = mailingRecipes()
               .stream()
               .filter(recipe -> ServiceAddress.isEnabled(recipe.value().getAddress())
                     && !recipe.value().getAddress().isHidden()
@@ -156,7 +166,7 @@ public class EnvelopeJeiPlugin implements IModPlugin {
                         Component.translatable("letter.envelope.cloud_depository.withdrawal_request.name").withStyle(Style.EMPTY
                               .withColor(ChatFormatting.DARK_BLUE)
                               .withUnderlined(true)
-                              .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(CloudDepository.createWithdrawalRequestLetter(Minecrft.registryAccess())))))
+                              .withHoverEvent(new HoverEvent.ShowItem(CloudDepository.createWithdrawalRequestLetter(Minecrft.registryAccess()))))
                   ));
         }
     }
