@@ -1,27 +1,30 @@
 package io.github.mortuusars.envelope.client.model;
 
-import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.mortuusars.envelope.world.entity.PigeonVariant;
-import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.client.renderer.entity.state.PigeonRenderState;
+import io.github.mortuusars.envelope.world.entity.Pigeon;
 import io.github.mortuusars.envelope.lib.mortaar.util.Easing;
 import net.minecraft.Optionull;
-import net.minecraft.client.model.AgeableListModel;
+import net.minecraft.client.model.BabyModelTransform;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import io.github.mortuusars.envelope.world.entity.Pigeon;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PigeonModel extends AgeableListModel<Pigeon> {
-    private final ModelPart root;
+import java.util.Set;
+
+/**
+ * 1.21.11: AgeableListModel was removed. The baby model is a separate baked layer made with {@link #BABY_TRANSFORMER}
+ * (same numbers upstream passed to AgeableListModel), and the model is animated from a {@link PigeonRenderState}.
+ * The ghost's extra emissive pass moved to {@code PigeonGhostGlowLayer}, because models can no longer draw into
+ * other buffers themselves.
+ */
+public class PigeonModel extends EntityModel<PigeonRenderState> {
+    // bodyYOffset = 24 * (babyBodyScale - 1)
+    // babyYHeadOffset = I have not been able to crack the code. so have a magic number instead.
+    public static final MeshTransformer BABY_TRANSFORMER = new BabyModelTransform(true, 10F, 0, 2F, 2F, 24F, Set.of("head"));
 
     private final ModelPart head;
     private final ModelPart beak;
@@ -37,14 +40,8 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
     private final ModelPart leftWing;
     private final ModelPart rightWing;
 
-    private boolean ghost;
-    private Identifier texture;
-
     public PigeonModel(ModelPart root) {
-        // bodyYOffset = 24 * (babyBodyScale - 1)
-        // babyYHeadOffset = I have not been able to crack the code. so have a magic number instead.
-        super(true, 10F, 0, 2F, 2F, 24F);
-        this.root = root;
+        super(root);
 
         head = root.getChild("head");
         beak = head.getChild("beak");
@@ -141,17 +138,17 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
         return LayerDefinition.create(mesh, 64, 64);
     }
 
-    public void setupAnim(Pigeon pigeon, float limbSwing, float limbSwingAmount, float bob, float netHeadYaw, float headPitch) {
-        root.getAllParts().forEach(ModelPart::resetPose);
-        ghost = pigeon.getVariant().is(PigeonVariant.GHOST);
-        texture = pigeon.getVariant().value().texture();
+    @Override
+    public void setupAnim(PigeonRenderState state) {
+        super.setupAnim(state);
+        float limbSwing = state.walkAnimationPos;
+        float limbSwingAmount = state.walkAnimationSpeed;
+        float bob = state.flapAngle;
 
-        head.xRot = headPitch * (float) (Math.PI / 180.0);
-        head.yRot = netHeadYaw * (float) (Math.PI / 180.0);
+        head.xRot = state.xRot * (float) (Math.PI / 180.0);
+        head.yRot = state.yRot * (float) (Math.PI / 180.0);
 
-        float partialTick = Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true);
-
-        switch (getState(pigeon)) {
+        switch (state.pose) {
             case FLYING -> {
                 leftWing.zRot = -(bob + 0.3f);
                 rightWing.zRot = bob + 0.3f;
@@ -161,8 +158,8 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
                 rightLeg.xRot = 0.75f * limbSwingAmount;
                 rightLeg.yRot = 0.15f;
 
-                // Rock back and forth
-                float anim = ((pigeon.tickCount + partialTick) % 60) / 60;
+                // Rock back and forth (ageInTicks = tickCount + partial tick)
+                float anim = (state.ageInTicks % 60) / 60;
                 anim *= 2;
                 if (anim > 1) {
                     anim = 2 - anim;
@@ -192,7 +189,7 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
             }
             case SITTING -> {
                 body.y += 1.9F;
-                head.y += pigeon.isBaby() ? 1.9F : 2.9F;
+                head.y += state.isBaby ? 1.9F : 2.9F;
 
                 leftWing.zRot = -0.2F;
                 rightWing.zRot = 0.2F;
@@ -203,9 +200,8 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
             }
         }
 
-        int eatingTicks = pigeon.getEatingTicks();
-        if (eatingTicks > 0) {
-            float anim = Mth.clamp((eatingTicks + partialTick) / 10f, 0.0f, 1.0f);
+        if (state.eatingProgress > 0) {
+            float anim = state.eatingProgress;
             anim *= 2;
             if (anim > 1) {
                 anim = 2 - anim;
@@ -214,8 +210,7 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
             head.xRot += anim;
         }
 
-        String customName = Optionull.mapOrDefault(pigeon.getCustomName(), Component::getString, "");
-        if (customName.equalsIgnoreCase("drumstick") || customName.equalsIgnoreCase("matisslee")) {
+        if (state.chunky) {
             body.y += 0.5f;
             body.z -= 0.5f;
             head.y += 0.5f;
@@ -229,38 +224,20 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
         }
     }
 
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
-        if (ghost && color == 0xFFFFFFFF) {
-            // This is probably stupid, but looks pretty good
-
-            // Low opacity regular render to block water and clouds (entityTranslucentEmissive does not sort transparency well)
-            color = 0x22FFFFFF;
-            super.renderToBuffer(poseStack, buffer, LightTexture.FULL_BRIGHT, packedOverlay, color);
-
-            VertexConsumer emissiveBuffer = Minecrft.get().renderBuffers().bufferSource().getBuffer(
-                  RenderType.entityTranslucentEmissive(texture));
-            color = 0x7F93FF93;
-            super.renderToBuffer(poseStack, emissiveBuffer, LightTexture.FULL_BRIGHT, packedOverlay, color);
-        } else {
-            super.renderToBuffer(poseStack, buffer, packedLight, packedOverlay, color);
-        }
-    }
-
-    public PigeonModel.State getState(@Nullable Pigeon pigeon) {
+    public static PigeonModel.State getState(@Nullable Pigeon pigeon) {
         if (pigeon == null) return State.STANDING;
         if (pigeon.isSitting()) return State.SITTING;
         return pigeon.isFlying() ? State.FLYING : State.STANDING;
     }
 
-    @Override
-    protected @NotNull Iterable<ModelPart> headParts() {
-        return ImmutableList.of(head);
+    public static float getEatingProgress(Pigeon pigeon, float partialTick) {
+        int eatingTicks = pigeon.getEatingTicks();
+        return eatingTicks > 0 ? Mth.clamp((eatingTicks + partialTick) / 10f, 0.0f, 1.0f) : 0;
     }
 
-    @Override
-    protected @NotNull Iterable<ModelPart> bodyParts() {
-        return ImmutableList.of(body, rightLeg, leftLeg, rightWing, leftWing, tail);
+    public static boolean isChunky(Pigeon pigeon) {
+        String customName = Optionull.mapOrDefault(pigeon.getCustomName(), Component::getString, "");
+        return customName.equalsIgnoreCase("drumstick") || customName.equalsIgnoreCase("matisslee");
     }
 
     public enum State {

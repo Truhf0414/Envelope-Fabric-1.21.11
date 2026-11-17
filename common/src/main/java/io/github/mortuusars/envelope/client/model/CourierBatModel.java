@@ -1,29 +1,31 @@
 package io.github.mortuusars.envelope.client.model;
 
-import io.github.mortuusars.envelope.world.entity.CourierBat;
+import io.github.mortuusars.envelope.client.renderer.entity.state.CourierBatRenderState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.animation.AnimationChannel;
 import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.animation.Keyframe;
+import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.animation.definitions.BatAnimation;
-import net.minecraft.client.model.HierarchicalModel;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.RenderType;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
+/**
+ * 1.21.11: HierarchicalModel was removed; animations are baked against the model parts once and applied from the
+ * render state. Uses the vanilla bat layer.
+ */
 @Environment(EnvType.CLIENT)
-public class CourierBatModel extends HierarchicalModel<CourierBat> {
-    private final ModelPart root;
-    private final AnimationDefinition batFlyingWithBackpack;
-    private final AnimationDefinition testAnimation;
+public class CourierBatModel extends EntityModel<CourierBatRenderState> {
+    private final KeyframeAnimation flying;
+    private final KeyframeAnimation flyingWithBackpack;
 
     public CourierBatModel(ModelPart root) {
-        super(RenderType::entityCutout);
-        this.root = root;
+        super(root, RenderTypes::entityCutout);
 
-        batFlyingWithBackpack = AnimationDefinition.Builder.withLength(0.5F)
+        AnimationDefinition batFlyingWithBackpack = AnimationDefinition.Builder.withLength(0.5F)
               .looping()
               .addAnimation(
                     "head",
@@ -121,7 +123,8 @@ public class CourierBatModel extends HierarchicalModel<CourierBat> {
               )
               .build();
 
-        testAnimation = AnimationDefinition.Builder.withLength(0.5F)
+        @SuppressWarnings("unused") // Upstream keeps this test animation around unused
+        AnimationDefinition testAnimation = AnimationDefinition.Builder.withLength(0.5F)
               .looping()
               .addAnimation(
                     "head",
@@ -218,14 +221,14 @@ public class CourierBatModel extends HierarchicalModel<CourierBat> {
                     )
               )
               .build();
+
+        flying = BatAnimation.BAT_FLYING.bake(root);
+        flyingWithBackpack = batFlyingWithBackpack.bake(root);
     }
 
-    public @NotNull ModelPart root() {
-        return this.root;
-    }
-
-    public void setupAnim(CourierBat entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        root().getAllParts().forEach(ModelPart::resetPose);
-        animate(entity.flyAnimationState, entity.hasMail() ? batFlyingWithBackpack : BatAnimation.BAT_FLYING, ageInTicks, 1.0F);
+    @Override
+    public void setupAnim(CourierBatRenderState state) {
+        super.setupAnim(state);
+        (state.hasMail ? flyingWithBackpack : flying).apply(state.flyAnimationState, state.ageInTicks);
     }
 }

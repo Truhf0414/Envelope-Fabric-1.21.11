@@ -38,6 +38,11 @@ public class EnvelopeFabricClient implements ClientModInitializer {
         EntityRendererRegistry.register(Envelope.EntityTypes.COURIER_BAT.get(), CourierBatRenderer::new);
 
         EntityModelLayerRegistry.registerModelLayer(PigeonRenderer.MODEL_LAYER, PigeonModel::createLayerDefinition);
+        // 1.21.11: babies use their own baked layer (AgeableListModel's runtime scaling was removed)
+        EntityModelLayerRegistry.registerModelLayer(PigeonRenderer.BABY_MODEL_LAYER,
+              () -> PigeonModel.createLayerDefinition().apply(PigeonModel.BABY_TRANSFORMER));
+        EntityModelLayerRegistry.registerModelLayer(CharredPigeonRenderer.BABY_MODEL_LAYER,
+              () -> CharredPigeonModel.createLayerDefinition().apply(CharredPigeonModel.BABY_TRANSFORMER));
         EntityModelLayerRegistry.registerModelLayer(PigeonBackpackLayer.MODEL_LAYER, PigeonModel::createLayerDefinition);
         EntityModelLayerRegistry.registerModelLayer(PigeonHatLayer.MODEL_LAYER, PigeonModel::createLayerDefinition);
         EntityModelLayerRegistry.registerModelLayer(CharredPigeonRenderer.MODEL_LAYER, CharredPigeonModel::createLayerDefinition);

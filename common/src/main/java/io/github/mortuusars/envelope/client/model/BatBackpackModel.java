@@ -1,24 +1,23 @@
 package io.github.mortuusars.envelope.client.model;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.mortuusars.envelope.Envelope;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Unit;
 
-public class BatBackpackModel extends Model {
+/**
+ * 1.21.11: Model is generic over its render state; the backpack has no animation of its own, so it uses {@link Unit}.
+ */
+public class BatBackpackModel extends Model<Unit> {
     public static final Identifier TEXTURE = Envelope.resource("textures/entity/bat/misc/bat_backpack.png");
 
-    private final ModelPart root;
-
     public BatBackpackModel(ModelPart root) {
-        super(RenderType::entityCutoutNoCull);
-        this.root = root;
+        super(root, RenderTypes::entityCutoutNoCull);
     }
 
     public static LayerDefinition createLayerDefinition() {
@@ -60,8 +59,4 @@ public class BatBackpackModel extends Model {
         return LayerDefinition.create(mesh, 32, 32);
     }
 
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
-        root.render(poseStack, buffer, packedLight, packedOverlay, color);
-    }
 }
