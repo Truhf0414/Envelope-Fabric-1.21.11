@@ -1,0 +1,33 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "envelope:payback_tag_duration",
+    "entries": [
+      {
+        "threshold": 0.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "envelope:item/payback_tag_short"
+        }
+      },
+      {
+        "threshold": 0.1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "envelope:item/payback_tag_medium"
+        }
+      },
+      {
+        "threshold": 0.2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "envelope:item/payback_tag_long"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "envelope:item/payback_tag_medium"
+    }
+  }
+}

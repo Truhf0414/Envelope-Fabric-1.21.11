@@ -1,0 +1,23 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "minecraft:has_component",
+    "component": "envelope:open",
+    "on_true": {
+      "type": "minecraft:condition",
+      "property": "envelope:has_content",
+      "on_true": {
+        "type": "minecraft:model",
+        "model": "envelope:item/tattered_letter_open_content"
+      },
+      "on_false": {
+        "type": "minecraft:model",
+        "model": "envelope:item/tattered_letter_open"
+      }
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "envelope:item/tattered_letter"
+    }
+  }
+}

@@ -171,8 +171,8 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         }
     }
 
-    /** Phase 4 turns this on: until the item definitions exist, every item is expected to have no model. */
-    static final boolean DATA_AND_ASSETS_COMPLETE = false;
+    /** On since phase 4: every item must have a model, every data file must load, mailing recipes must exist. */
+    static final boolean DATA_AND_ASSETS_COMPLETE = true;
 
     /**
      * Every registered Envelope item must have an item model definition that resolves (1.21.4+: assets/&lt;ns&gt;/items)

@@ -130,36 +130,29 @@ final class ScreenShots {
         }
     }
 
-    /** Hovers hotbar slots in the inventory screen to show each custom tooltip component. */
+    /**
+     * Item looks and tooltips. First two inventory pages with every registered item (each must show its own icon),
+     * then a hotbar of items carrying the components that switch models, tints and custom tooltips; each of those
+     * is hovered for its tooltip.
+     */
     private static void tooltips(ClientGameTestContext context, TestSingleplayerContext singleplayer, List<String> problems) {
         try {
-            singleplayer.getServer().runOnServer(server -> {
-                ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
-                player.getInventory().clearContent();
-                List<ItemStack> items = List.of(
-                      new ItemStack(Envelope.Items.LETTER.get()),
-                      new ItemStack(Envelope.Items.PACKAGE.get()),
-                      new ItemStack(Envelope.Items.PAYBACK_TAG.get()),
-                      new ItemStack(Envelope.Items.ADDRESS_TAG.get()),
-                      new ItemStack(Envelope.Items.SEAL_STAMP.get()),
-                      new ItemStack(Envelope.Items.PAPER_BOX.get()),
-                      new ItemStack(Envelope.Items.MAILBOX.get()),
-                      new ItemStack(Envelope.Items.LETTER_AND_QUILL.get()),
-                      new ItemStack(Envelope.Items.PAYBACK_BOX.get()));
-                for (int i = 0; i < items.size(); i++) {
-                    player.getInventory().setItem(i, items.get(i));
-                }
-                player.inventoryMenu.broadcastChanges();
-                // The creative inventory is a different screen; tooltips are checked in the survival one
-                player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
-            });
-            context.waitTicks(5);
-            context.setScreen(() -> new InventoryScreen(net.minecraft.client.Minecraft.getInstance().player));
-            context.waitForScreen(InventoryScreen.class);
-            context.waitTicks(5);
-            context.takeScreenshot("inventory_items");
+            singleplayer.getServer().runOnServer(server ->
+                  server.getPlayerList().getPlayers().getFirst().setGameMode(net.minecraft.world.level.GameType.SURVIVAL));
 
-            for (int slot = 0; slot < 9; slot++) {
+            List<net.minecraft.world.item.Item> all = net.minecraft.core.registries.BuiltInRegistries.ITEM.stream()
+                  .filter(item -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(Envelope.ID))
+                  .toList();
+            for (int page = 0; page * 36 < all.size(); page++) {
+                List<net.minecraft.world.item.Item> items = all.subList(page * 36, Math.min(all.size(), (page + 1) * 36));
+                inventory(context, singleplayer, server -> items.stream().map(ItemStack::new).toList());
+                context.takeScreenshot("items_all_page_" + (page + 1));
+                close(context, singleplayer);
+            }
+
+            inventory(context, singleplayer, server -> statefulItems(server.overworld()));
+            context.takeScreenshot("items_stateful");
+            for (int slot = 0; slot < STATEFUL_NAMES.size(); slot++) {
                 int hotbar = slot;
                 double[] cursor = context.computeOnClient(client -> {
                     int width = client.getWindow().getGuiScaledWidth();
@@ -171,13 +164,77 @@ final class ScreenShots {
                 });
                 context.getInput().setCursorPos(cursor[0], cursor[1]);
                 context.waitTicks(3);
-                context.takeScreenshot("tooltip_slot_" + slot);
+                context.takeScreenshot("tooltip_" + STATEFUL_NAMES.get(slot));
             }
         } catch (Throwable e) {
-            problems.add("tooltips: " + firstLine(e));
+            problems.add("items and tooltips: " + firstLine(e));
         } finally {
             close(context, singleplayer);
         }
+    }
+
+    private static final List<String> STATEFUL_NAMES = List.of("letter_closed", "letter_open_with_content", "package_open_with_items",
+          "payback_tag_short", "payback_tag_long", "sealed_letter_wax_apple", "sealed_package_black_wax", "address_tag_with_address",
+          "payback_box_open");
+
+    /** One item per model state, tint and custom tooltip. Same order as {@link #STATEFUL_NAMES}. */
+    private static List<ItemStack> statefulItems(ServerLevel level) {
+        ItemStack closed = new ItemStack(Envelope.Items.LETTER.get());
+
+        ItemStack open = new ItemStack(Envelope.Items.LETTER.get());
+        open.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+        open.set(Envelope.DataComponents.LETTER_CONTENT, new io.github.mortuusars.envelope.world.item.component.LetterContent(
+              net.minecraft.network.chat.Component.literal("Port test letter")));
+
+        ItemStack pack = new ItemStack(Envelope.Items.PACKAGE.get());
+        pack.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+        pack.set(Envelope.DataComponents.PACKAGE_CONTENTS, new io.github.mortuusars.envelope.world.item.component.PackageContents(
+              List.of(new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.BREAD, 5))));
+
+        ItemStack tagShort = new ItemStack(Envelope.Items.PAYBACK_TAG.get());
+        tagShort.set(Envelope.DataComponents.PAYBACK_TAG_CONTENTS,
+              PaybackRequest.createDefault(io.github.mortuusars.envelope.world.item.component.PaybackDuration.SHORT));
+        ItemStack tagLong = new ItemStack(Envelope.Items.PAYBACK_TAG.get());
+        tagLong.set(Envelope.DataComponents.PAYBACK_TAG_CONTENTS,
+              PaybackRequest.createDefault(io.github.mortuusars.envelope.world.item.component.PaybackDuration.LONG));
+
+        ItemStack sealedLetter = new ItemStack(Envelope.Items.SEALED_LETTER.get());
+        sealedLetter.set(Envelope.DataComponents.SEAL, io.github.mortuusars.envelope.world.item.component.seal.Seal.create(level.registryAccess())
+              .material(io.github.mortuusars.envelope.world.item.component.seal.SealMaterial.WAX)
+              .impression(io.github.mortuusars.envelope.world.item.component.seal.SealSymbol.APPLE)
+              .signature(net.minecraft.network.chat.Component.literal("Port Tester")).build());
+        ItemStack sealedPackage = new ItemStack(Envelope.Items.SEALED_PACKAGE.get());
+        sealedPackage.set(Envelope.DataComponents.SEAL, io.github.mortuusars.envelope.world.item.component.seal.Seal.create(level.registryAccess())
+              .material(io.github.mortuusars.envelope.world.item.component.seal.SealMaterial.BLACK_WAX)
+              .impression(io.github.mortuusars.envelope.world.item.component.seal.SealSymbol.BOOK)
+              .signature(net.minecraft.network.chat.Component.literal("Port Tester")).build());
+
+        ItemStack addressTag = new ItemStack(Envelope.Items.ADDRESS_TAG.get());
+        addressTag.set(Envelope.DataComponents.ADDRESS_TAG_ADDRESS, new BlockAddress("Port test address"));
+
+        ItemStack paybackBox = paybackBox();
+        paybackBox.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+
+        return List.of(closed, open, pack, tagShort, tagLong, sealedLetter, sealedPackage, addressTag, paybackBox);
+    }
+
+    /** Puts the items into the player's inventory (hotbar first) and opens the survival inventory screen. */
+    private static void inventory(ClientGameTestContext context, TestSingleplayerContext singleplayer,
+                                  java.util.function.Function<net.minecraft.server.MinecraftServer, List<ItemStack>> items) {
+        singleplayer.getServer().runOnServer(server -> {
+            ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+            player.getInventory().clearContent();
+            List<ItemStack> stacks = items.apply(server);
+            for (int i = 0; i < stacks.size(); i++) {
+                player.getInventory().setItem(i, stacks.get(i));
+            }
+            player.inventoryMenu.broadcastChanges();
+        });
+        context.waitTicks(5);
+        context.setScreen(() -> new InventoryScreen(net.minecraft.client.Minecraft.getInstance().player));
+        context.waitForScreen(InventoryScreen.class);
+        context.getInput().setCursorPos(2, 2);
+        context.waitTicks(5);
     }
 
     private static void close(ClientGameTestContext context, TestSingleplayerContext singleplayer) {
