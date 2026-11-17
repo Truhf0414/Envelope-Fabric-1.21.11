@@ -3,10 +3,8 @@ package io.github.mortuusars.envelope.world.block.occupiable;
 import io.github.mortuusars.envelope.Envelope;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
@@ -24,7 +22,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityProcessor;
 
 public interface Occupiable {
     List<String> IGNORED_OCCUPANT_TAGS = Arrays.asList(
@@ -90,8 +93,13 @@ public interface Occupiable {
         entity.stopRiding();
         entity.ejectPassengers();
 
-        CompoundTag tag = new CompoundTag();
-        entity.save(tag);
+        CompoundTag tag;
+        // 1.21.11: Entity#save writes to a ValueOutput; same pattern as vanilla BeehiveBlockEntity.Occupant#of
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(entity.problemPath(), Envelope.LOGGER)) {
+            TagValueOutput output = TagValueOutput.createWithContext(reporter, entity.registryAccess());
+            entity.save(output);
+            tag = output.buildResult();
+        }
         cleanupOccupantEntityTag(tag);
         getOccupants().add(new Occupant(CustomData.of(tag), getFirstFreeSlotForOccupant(),
               getMinimumTicksInsideForOccupant(entity), 0).toMutable());
@@ -147,7 +155,7 @@ public interface Occupiable {
         CompoundTag tag = occupant.entityData().copyTag();
         cleanupOccupantEntityTag(tag);
 
-        @Nullable Entity entity = EntityType.loadEntityRecursive(tag, level, Function.identity());
+        @Nullable Entity entity = EntityType.loadEntityRecursive(tag, level, EntitySpawnReason.LOAD, EntityProcessor.NOP); // 1.21.11 signature, as BeehiveBlockEntity
         if (entity == null || !canBeOccupiedBy(entity)) {
             return null;
         }
@@ -217,15 +225,14 @@ public interface Occupiable {
         return "occupants";
     }
 
-    default void saveOccupiable(CompoundTag tag, HolderLookup.Provider registries) {
-        tag.put(getSerializedOccupantsName(), Occupant.LIST_CODEC.encodeStart(NbtOps.INSTANCE, getImmutableOccupants()).getOrThrow());
+    // 1.21.11: block entity save/load goes through ValueOutput/ValueInput; read failures are reported by the ProblemReporter.
+    default void saveOccupiable(ValueOutput output) {
+        output.store(getSerializedOccupantsName(), Occupant.LIST_CODEC, getImmutableOccupants());
     }
 
-    default void loadOccupiable(CompoundTag tag, HolderLookup.Provider registries) {
+    default void loadOccupiable(ValueInput input) {
         getOccupants().clear();
-        Occupant.LIST_CODEC
-              .parse(NbtOps.INSTANCE, tag.get(getSerializedOccupantsName()))
-              .resultOrPartial(error -> Envelope.LOGGER.error("Failed to parse occupants: '{}'", error))
+        input.read(getSerializedOccupantsName(), Occupant.LIST_CODEC)
               .map(list -> list.stream().map(Occupant::toMutable).toList())
               .ifPresent(list -> getOccupants().addAll(list));
     }

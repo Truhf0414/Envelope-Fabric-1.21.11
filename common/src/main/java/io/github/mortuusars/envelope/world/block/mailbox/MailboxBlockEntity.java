@@ -23,7 +23,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -42,7 +41,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.gamerules.GameRules;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,6 +52,9 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.UUIDUtil;
 
 public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbox, WorldlyContainer {
     public static final int REGULAR_SLOTS = 3;
@@ -523,28 +524,30 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
 
     // -- Loading/Saving
 
+    // 1.21.11: block entity save/load goes through ValueOutput/ValueInput. putUUID/getUUID were removed;
+    // UUIDUtil.CODEC writes the same int-array shape.
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        ContainerHelper.saveAllItems(tag, items, registries);
-        if (address != null) tag.putString("address", address.getString());
-        if (owner != null) tag.putUUID("owner", owner);
-        if (!inboxId.equals(Util.NIL_UUID)) tag.putUUID("inbox_id", inboxId);
-        if (batEmployCooldown > 0) tag.putInt("bat_employ_cooldown", batEmployCooldown);
-        if (batEmployAttempt > 0) tag.putInt("bat_employ_attempt", batEmployCooldown);
-        if (deliveredWithPigeon) tag.putBoolean("delivered_with_pigeon", true);
-        if (deliveredWithBat) tag.putBoolean("delivered_with_bat", true);
+    protected void saveAdditional(ValueOutput output) {
+        ContainerHelper.saveAllItems(output, items);
+        if (address != null) output.putString("address", address.getString());
+        output.storeNullable("owner", UUIDUtil.CODEC, owner);
+        if (!inboxId.equals(Util.NIL_UUID)) output.store("inbox_id", UUIDUtil.CODEC, inboxId);
+        if (batEmployCooldown > 0) output.putInt("bat_employ_cooldown", batEmployCooldown);
+        if (batEmployAttempt > 0) output.putInt("bat_employ_attempt", batEmployCooldown); // sic: upstream writes the cooldown here
+        if (deliveredWithPigeon) output.putBoolean("delivered_with_pigeon", true);
+        if (deliveredWithBat) output.putBoolean("delivered_with_bat", true);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        ContainerHelper.loadAllItems(tag, items, registries);
-        setAddress(tag.contains("address", Tag.TAG_STRING) ? new BlockAddress(tag.getString("address")) : null);
-        owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
-        inboxId = tag.hasUUID("inbox_id") ? tag.getUUID("inbox_id") : UUID.randomUUID();
-        batEmployCooldown = tag.getInt("bat_employ_cooldown");
-        batEmployAttempt = tag.getInt("bat_employ_attempt");
-        deliveredWithPigeon = tag.getBoolean("delivered_with_pigeon");
-        deliveredWithBat = tag.getBoolean("delivered_with_bat");
+    protected void loadAdditional(ValueInput input) {
+        ContainerHelper.loadAllItems(input, items);
+        setAddress(input.getString("address").map(BlockAddress::new).orElse(null));
+        owner = input.read("owner", UUIDUtil.CODEC).orElse(null);
+        inboxId = input.read("inbox_id", UUIDUtil.CODEC).orElseGet(UUID::randomUUID);
+        batEmployCooldown = input.getIntOr("bat_employ_cooldown", 0);
+        batEmployAttempt = input.getIntOr("bat_employ_attempt", 0);
+        deliveredWithPigeon = input.getBooleanOr("delivered_with_pigeon", false);
+        deliveredWithBat = input.getBooleanOr("delivered_with_bat", false);
     }
 
     // -- Util

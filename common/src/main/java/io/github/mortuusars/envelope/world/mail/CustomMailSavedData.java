@@ -1,28 +1,36 @@
 package io.github.mortuusars.envelope.world.mail;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
-import io.github.mortuusars.envelope.Envelope;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.Encoder;
 import io.github.mortuusars.envelope.util.PersistentData;
 import io.github.mortuusars.envelope.lib.mortaar.Platform;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class CustomMailSavedData extends SavedData {
-    public static final Codec<CustomMailSavedData> CODEC = CompoundTag.CODEC.xmap(CustomMailSavedData::new, CustomMailSavedData::getData);
+    // 1.21.11: SavedData#save is gone and DimensionDataStorage encodes CODEC directly, so the encoder first writes
+    // dirty typed data into the tag (what upstream's save() did), using the ops the storage passes in.
+    public static final Codec<CustomMailSavedData> CODEC = Codec.of(
+          new Encoder<>() {
+              @Override
+              public <T> DataResult<T> encode(CustomMailSavedData input, DynamicOps<T> ops, T prefix) {
+                  input.writeDirtyTypedData(ops);
+                  return CompoundTag.CODEC.encode(input.getData(), ops, prefix);
+              }
+          },
+          CompoundTag.CODEC.map(CustomMailSavedData::new));
     public static final Logger LOGGER = LogUtils.getLogger();
 
     protected final Map<PersistentData.Type<?>, PersistentData> typedData = new HashMap<>();
@@ -46,7 +54,7 @@ public class CustomMailSavedData extends SavedData {
      * @param location ID of the data.
      */
     public CompoundTag get(Identifier location) {
-        return getData().getCompound(location.toString());
+        return getData().getCompoundOrEmpty(location.toString()); // 1.21.11: getCompound returns Optional
     }
 
     public void set(Identifier location, CompoundTag data) {
@@ -60,7 +68,7 @@ public class CustomMailSavedData extends SavedData {
             String key = t.id().toString();
             if (data.contains(key)) {
                 RegistryAccess registryAccess = Platform.getCurrentServerOrThrow().registryAccess();
-                return t.codec().decode(registryAccess.createSerializationContext(NbtOps.INSTANCE), data.getCompound(key))
+                return t.codec().decode(registryAccess.createSerializationContext(NbtOps.INSTANCE), data.getCompoundOrEmpty(key))
                       .ifError(e -> LOGGER.error("Cannot decode typed data '{}': {}", t, e))
                       .result()
                       .map(p -> (PersistentData) p.getFirst())
@@ -73,11 +81,12 @@ public class CustomMailSavedData extends SavedData {
 
     // -- Save / Load
 
-    private static final Factory<CustomMailSavedData> FACTORY =
-          new Factory<>(CustomMailSavedData::new, CustomMailSavedData::load, null);
+    // 1.21.11: SavedData.Factory was replaced by SavedDataType; DataFixTypes stays null like upstream.
+    public static final SavedDataType<CustomMailSavedData> TYPE =
+          new SavedDataType<>("envelope_mail_data", CustomMailSavedData::new, CODEC, null);
 
     public static CustomMailSavedData get(ServerLevel level) {
-        return level.getServer().overworld().getDataStorage().computeIfAbsent(FACTORY, "envelope_mail_data");
+        return level.getServer().overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     @Override
@@ -85,36 +94,22 @@ public class CustomMailSavedData extends SavedData {
         return super.isDirty() || typedData.values().stream().anyMatch(PersistentData::isDirty);
     }
 
-    @Override
-    public @NotNull CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
+    protected <O> void writeDirtyTypedData(DynamicOps<O> ops) {
         for (Map.Entry<PersistentData.Type<?>, PersistentData> typedData : typedData.entrySet()) {
             if (typedData.getValue().isDirty()) {
                 try {
-                    data.put(typedData.getKey().id().toString(), encodeTypedData(typedData.getKey(), typedData.getValue(), ops));
+                    O encoded = encodeTypedData(typedData.getKey(), typedData.getValue(), ops);
+                    data.put(typedData.getKey().id().toString(), ops.convertTo(NbtOps.INSTANCE, encoded));
                     typedData.getValue().setDirty(false);
                 } catch (Exception e) {
                     LOGGER.error("Cannot encode typed data '{}':", typedData.getKey(), e);
                 }
             }
         }
-
-        return CODEC.encode(this, NbtOps.INSTANCE, tag)
-              .ifError(e -> Envelope.LOGGER.error("Cannot save CustomMailSavedData: {}", e.message()))
-              .result()
-              .filter(t -> t instanceof CompoundTag)
-              .map(t -> ((CompoundTag) t))
-              .orElse(tag);
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends PersistentData> Tag encodeTypedData(PersistentData.Type<T> type, PersistentData data, RegistryOps<Tag> ops) {
+    private <T extends PersistentData, O> O encodeTypedData(PersistentData.Type<T> type, PersistentData data, DynamicOps<O> ops) {
         return type.codec().encodeStart(ops, (T)data).getOrThrow();
-    }
-
-    private static CustomMailSavedData load(CompoundTag tag, HolderLookup.Provider registries) {
-        return CODEC.decode(NbtOps.INSTANCE, tag)
-              .ifError(e -> Envelope.LOGGER.error("Cannot load CustomMailSavedData: {}", e.message()))
-              .result().map(Pair::getFirst).orElseGet(CustomMailSavedData::new);
     }
 }

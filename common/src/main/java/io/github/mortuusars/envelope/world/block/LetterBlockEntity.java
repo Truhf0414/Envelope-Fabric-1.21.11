@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -29,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import net.minecraft.world.Containers;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class LetterBlockEntity extends BlockEntity implements Nameable {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -121,28 +122,18 @@ public class LetterBlockEntity extends BlockEntity implements Nameable {
 
     // -- Save/Load
 
+    // 1.21.11: block entity save/load goes through ValueOutput/ValueInput; ItemStack#save/parse became ItemStack.CODEC.
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        if (loot != null) {
-            SeededContainerLoot.CODEC.encodeStart(NbtOps.INSTANCE, loot)
-                  .resultOrPartial(LOGGER::error)
-                  .ifPresent(lootTag -> tag.put("Loot", lootTag));
-        }
+    protected void saveAdditional(ValueOutput output) {
+        output.storeNullable("Loot", SeededContainerLoot.CODEC, loot);
         if (!letter.isEmpty()) {
-            tag.put("Letter", letter.save(registries, new CompoundTag()));
+            output.store("Letter", ItemStack.CODEC, letter);
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        if (tag.contains("Loot", CompoundTag.TAG_COMPOUND)) {
-            loot = SeededContainerLoot.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Loot"))
-                  .resultOrPartial(LOGGER::error)
-                  .orElse(null);
-        }
-        if (tag.contains("Letter", CompoundTag.TAG_COMPOUND)) {
-            letter = ItemStack.parse(registries, tag.getCompound("Letter"))
-                  .orElse(ItemStack.EMPTY);
-        }
+    protected void loadAdditional(ValueInput input) {
+        input.read("Loot", SeededContainerLoot.CODEC).ifPresent(loot -> this.loot = loot);
+        input.read("Letter", ItemStack.CODEC).ifPresent(letter -> this.letter = letter);
     }
 }

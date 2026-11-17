@@ -23,7 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class EquineAssuranceBureau {
-    private static final Identifier RECIPE_ID = ServiceAddress.EQUINE_ASSURANCE_BUREAU.location()
+    private static final Identifier RECIPE_ID = ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier()
           .withPrefix("mailing/")
           .withSuffix("/golden_horse_armor");
     private static final long MIN_SEND_INTERVAL = SharedConstants.TICKS_PER_GAME_DAY;
@@ -69,16 +69,16 @@ public class EquineAssuranceBureau {
             return;
         }
 
-        CompoundTag data = service.getPersistentData().get(ServiceAddress.EQUINE_ASSURANCE_BUREAU.location());
-        CompoundTag playerData = data.getCompound(player.getScoreboardName());
+        CompoundTag data = service.getPersistentData().get(ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier());
+        CompoundTag playerData = data.getCompoundOrEmpty(player.getScoreboardName()); // 1.21.11: getters return Optional
 
-        long lastSendTime = playerData.getLong(DATA_LAST_SEND_TIME);
+        long lastSendTime = playerData.getLongOr(DATA_LAST_SEND_TIME, 0L);
         if (lastSendTime > 0 && service.getGameTime() - lastSendTime < MIN_SEND_INTERVAL) {
             return;
         }
 
-        int sentNoticesCount = playerData.getInt(DATA_SENT_NOTICES_COUNT);
-        int deliveriesCount = playerData.getInt(DATA_DELIVERIES_COUNT);
+        int sentNoticesCount = playerData.getIntOr(DATA_SENT_NOTICES_COUNT, 0);
+        int deliveriesCount = playerData.getIntOr(DATA_DELIVERIES_COUNT, 0);
         double chance = Math.max(0.02, 1.0 / (1 + ((sentNoticesCount + deliveriesCount) * 2)));
 
         if (service.getLevel().getRandom().nextDouble() < chance
@@ -86,7 +86,7 @@ public class EquineAssuranceBureau {
             playerData.putInt(DATA_SENT_NOTICES_COUNT, sentNoticesCount + 1);
             playerData.putLong(DATA_LAST_SEND_TIME, service.getGameTime());
             data.put(player.getScoreboardName(), playerData);
-            service.getPersistentData().set(ServiceAddress.EQUINE_ASSURANCE_BUREAU.location(), data);
+            service.getPersistentData().set(ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier(), data);
         }
     }
 
@@ -116,13 +116,13 @@ public class EquineAssuranceBureau {
               .filter(owner -> isCarryingRecipeResult(context, craftingResult))
               .flatMap(owner -> context.getService().getKnownPlayers().getDataOf(owner))
               .ifPresent(player -> {
-                  CompoundTag data = context.getService().getPersistentData().get(ServiceAddress.EQUINE_ASSURANCE_BUREAU.location());
-                  CompoundTag playerData = data.getCompound(player.getProfile().getName());
+                  CompoundTag data = context.getService().getPersistentData().get(ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier());
+                  CompoundTag playerData = data.getCompoundOrEmpty(player.getProfile().name()); // 1.21.11: getters return Optional; GameProfile is a record
 
-                  playerData.putInt(DATA_DELIVERIES_COUNT, playerData.getInt(DATA_DELIVERIES_COUNT) + 1);
-                  data.put(player.getProfile().getName(), playerData);
+                  playerData.putInt(DATA_DELIVERIES_COUNT, playerData.getIntOr(DATA_DELIVERIES_COUNT, 0) + 1);
+                  data.put(player.getProfile().name(), playerData);
 
-                  context.getService().getPersistentData().set(ServiceAddress.EQUINE_ASSURANCE_BUREAU.location(), data);
+                  context.getService().getPersistentData().set(ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier(), data);
               });
     }
 

@@ -3,18 +3,14 @@ package io.github.mortuusars.envelope.world.level.saveddata;
 import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.network.packet.clientbound.ClientboundSyncDeathLockDataPacket;
 import io.github.mortuusars.envelope.world.item.component.SealLock;
 import io.github.mortuusars.envelope.lib.mortaar.Platform;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -92,7 +88,7 @@ public class SealLocks extends SavedData {
 
     public static SealLocks get(Level level) {
         if (level instanceof ServerLevel serverLevel) {
-            return serverLevel.getServer().overworld().getDataStorage().computeIfAbsent(factory(), "envelope_seal_locks");
+            return serverLevel.getServer().overworld().getDataStorage().computeIfAbsent(TYPE);
         } else {
             if (clientInstance == null) {
                 clientInstance = new SealLocks();
@@ -108,18 +104,8 @@ public class SealLocks extends SavedData {
         data.locks.addAll(locks);
     }
 
-    public static @NotNull Factory<SealLocks> factory() {
-        return new Factory<>(
-              SealLocks::new,
-              (tag, provider) -> CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), tag)
-                    .resultOrPartial(e -> Envelope.LOGGER.error("Cannot load DeathLockSavedData: {}", e))
-                    .orElse(null),
-              null);
-    }
-
-    public @NotNull CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        return (CompoundTag) CODEC.encode(this, registries.createSerializationContext(NbtOps.INSTANCE), tag)
-              .resultOrPartial(e -> Envelope.LOGGER.error("Cannot save DeathLockSavedData: {}", e))
-              .orElse(tag);
-    }
+    // 1.21.11: SavedData.Factory and SavedData#save were replaced by SavedDataType. DimensionDataStorage now encodes
+    // and decodes CODEC itself (with registry-aware ops) and logs parse failures. DataFixTypes stays null like upstream.
+    public static final SavedDataType<SealLocks> TYPE =
+          new SavedDataType<>("envelope_seal_locks", SealLocks::new, CODEC, null);
 }

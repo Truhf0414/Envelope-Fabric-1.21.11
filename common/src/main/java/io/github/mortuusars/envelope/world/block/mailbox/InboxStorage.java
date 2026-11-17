@@ -3,16 +3,13 @@ package io.github.mortuusars.envelope.world.block.mailbox;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.mail.address.type.BlockAddress;
 import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -76,22 +73,12 @@ public class InboxStorage extends SavedData {
 
     // --
 
+    // 1.21.11: SavedData.Factory and SavedData#save were replaced by SavedDataType. DimensionDataStorage now encodes
+    // and decodes CODEC itself (with registry-aware ops) and logs parse failures. DataFixTypes stays null like upstream.
+    public static final SavedDataType<InboxStorage> TYPE =
+          new SavedDataType<>("envelope_inboxes", InboxStorage::new, CODEC, null);
+
     public static InboxStorage get(ServerLevel level) {
-        return level.getServer().overworld().getDataStorage().computeIfAbsent(factory(), "envelope_inboxes");
-    }
-
-    public static @NotNull Factory<InboxStorage> factory() {
-        return new Factory<>(
-              InboxStorage::new,
-              (tag, provider) -> CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), tag)
-                    .resultOrPartial(e -> Envelope.LOGGER.error("Cannot load InboxStorage: {}", e))
-                    .orElse(null),
-              null);
-    }
-
-    public @NotNull CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        return (CompoundTag) CODEC.encode(this, registries.createSerializationContext(NbtOps.INSTANCE), tag)
-              .resultOrPartial(e -> Envelope.LOGGER.error("Cannot save InboxStorage: {}", e))
-              .orElse(tag);
+        return level.getServer().overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 }

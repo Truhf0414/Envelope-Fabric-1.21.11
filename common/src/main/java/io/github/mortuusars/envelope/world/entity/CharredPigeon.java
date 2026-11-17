@@ -8,7 +8,6 @@ import net.minecraft.util.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -57,6 +56,8 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class CharredPigeon extends Monster implements Enemy {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -357,18 +358,19 @@ public class CharredPigeon extends Monster implements Enemy {
 
     // -- Save / Load
 
+    // 1.21.11: entity save/load goes through ValueOutput/ValueInput; ItemStack#save/parse became ItemStack.CODEC.
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        if (!getCarriedMail().isEmpty()) tag.put("CarriedMail", getCarriedMail().save(registryAccess()));
-        if (timeInSafeDimension > 0) tag.putInt("TimeInSafeDimension", timeInSafeDimension);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        if (!getCarriedMail().isEmpty()) output.store("CarriedMail", ItemStack.CODEC, getCarriedMail());
+        if (timeInSafeDimension > 0) output.putInt("TimeInSafeDimension", timeInSafeDimension);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        setCarriedMail(ItemStack.parse(registryAccess(), tag.getCompound("CarriedMail")).orElse(ItemStack.EMPTY));
-        timeInSafeDimension = tag.getInt("TimeInSafeDimension");
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        setCarriedMail(input.read("CarriedMail", ItemStack.CODEC).orElse(ItemStack.EMPTY));
+        timeInSafeDimension = input.getIntOr("TimeInSafeDimension", 0);
     }
 
     // --

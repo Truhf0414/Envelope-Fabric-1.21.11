@@ -21,25 +21,25 @@ public class EnvelopeBuggerPage implements BuggerScreenPage {
               .map(tag -> {
 
                   List<String> lines = new ArrayList<>(List.of(
-                        "Mailboxes: " + tag.getInt("mailboxes"),
+                        "Mailboxes: " + tag.getIntOr("mailboxes", 0),
                         "",
                         "Mail:",
-                        "  Dropped: " + tag.getInt("dropped_mail_count"),
-                        "  Awaiting Payback: " + tag.getInt("payback_pending_mail_count"),
-                        "  In Cloud Depository: " + tag.getInt("cloud_depository_count"),
+                        "  Dropped: " + tag.getIntOr("dropped_mail_count", 0),
+                        "  Awaiting Payback: " + tag.getIntOr("payback_pending_mail_count", 0),
+                        "  In Cloud Depository: " + tag.getIntOr("cloud_depository_count", 0),
                         "",
                         "Couriers:",
-                        "  Real: " + tag.getInt("delivering_couriers"),
-                        "  Background: " + tag.getInt("background_delivering_couriers"),
-                        "  Finished: " + tag.getInt("background_finished_couriers")
+                        "  Real: " + tag.getIntOr("delivering_couriers", 0),
+                        "  Background: " + tag.getIntOr("background_delivering_couriers", 0),
+                        "  Finished: " + tag.getIntOr("background_finished_couriers", 0)
                   ));
 
-                  ListTag deliveries = tag.getList("deliveries", Tag.TAG_STRING);
+                  ListTag deliveries = tag.getListOrEmpty("deliveries"); // 1.21.11: getList(key, type) removed
                   if (!deliveries.isEmpty()) {
                       lines.add("");
                       lines.add("Deliveries:");
                       for (Tag delivery : deliveries) {
-                          lines.add("  " + delivery.getAsString());
+                          lines.add("  " + delivery.asString().orElse(delivery.toString())); // 1.21.11: Tag#getAsString -> asString()
                       }
                   }
 

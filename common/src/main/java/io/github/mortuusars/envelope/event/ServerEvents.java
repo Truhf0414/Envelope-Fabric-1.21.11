@@ -35,7 +35,7 @@ public class ServerEvents {
             }
 
             CustomData data = item.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-            if (data.contains("envelope_keep_in_inventory_on_transfer")) {
+            if (data.copyTag().contains("envelope_keep_in_inventory_on_transfer")) { // 1.21.11: CustomData#contains removed
                 data = data.update(tag -> tag.remove("envelope_keep_in_inventory_on_transfer"));
                 if (data.isEmpty()) {
                     item.remove(DataComponents.CUSTOM_DATA);

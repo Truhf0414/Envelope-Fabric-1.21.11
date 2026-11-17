@@ -15,14 +15,11 @@ import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -51,6 +48,8 @@ import java.util.*;
 import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.entity.EntitySpawnReason;
 import java.util.Optional;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalCourier {
     public static final List<String> IGNORED_TAGS = Arrays.asList(
@@ -461,59 +460,36 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
 
     // -- Save / Load
 
+    // 1.21.11: entity save/load goes through ValueOutput/ValueInput (see Pigeon). SpawnPos uses BlockPos.CODEC,
+    // the same int-array shape NbtUtils#writeBlockPos wrote.
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
 
-        tag.put("MailboxHandler", MailboxHandler.CODEC.encode(getMailboxHandler(), NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
-
-        if (delivery != null) {
-            Delivery.CODEC.encodeStart(registryAccess().createSerializationContext(NbtOps.INSTANCE), delivery)
-                  .resultOrPartial(LOGGER::error)
-                  .ifPresent(value -> tag.put("Delivery", value));
-        }
-
-        if (origin != null) {
-            CourierOrigin.CODEC.encodeStart(NbtOps.INSTANCE, origin)
-                  .resultOrPartial(LOGGER::error)
-                  .ifPresent(value -> tag.put("Origin", value));
-        }
+        output.store("MailboxHandler", MailboxHandler.CODEC, getMailboxHandler());
+        output.storeNullable("Delivery", Delivery.CODEC, delivery);
+        output.storeNullable("Origin", CourierOrigin.CODEC, origin);
 
         if (deliveries > 0) {
-            tag.putInt("Deliveries", deliveries);
+            output.putInt("Deliveries", deliveries);
         }
 
-        if (spawnPos != null) {
-            tag.put("SpawnPos", NbtUtils.writeBlockPos(spawnPos));
-        }
+        output.storeNullable("SpawnPos", BlockPos.CODEC, spawnPos);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
 
-        MailboxHandler.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("MailboxHandler"))
-              .resultOrPartial(e -> LOGGER.error("Cannot parse MailboxHandler from tag '{}': {}", tag.getCompound("MailboxHandler"), e))
-              .ifPresent(this::setMailboxHandler);
-
-        if (tag.contains("Delivery")) {
-            setDelivery(Delivery.CODEC.parse(registryAccess().createSerializationContext(NbtOps.INSTANCE), tag.getCompound("Delivery"))
-                  .resultOrPartial(e -> LOGGER.error("Cannot parse Delivery from tag '{}': {}", tag.getCompound("Delivery"), e))
-                  .orElse(null)
-            );
-        }
-
-        if (tag.contains("Origin")) {
-            setOrigin(CourierOrigin.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Origin"))
-                  .resultOrPartial(e -> LOGGER.error("Cannot parse CourierOrigin from tag '{}': {}", tag.getCompound("Origin"), e))
-                  .orElse(null));
-        }
+        input.read("MailboxHandler", MailboxHandler.CODEC).ifPresent(this::setMailboxHandler);
+        input.read("Delivery", Delivery.CODEC).ifPresent(this::setDelivery);
+        input.read("Origin", CourierOrigin.CODEC).ifPresent(this::setOrigin);
 
         setDelivering(delivery != null);
         setHasMail(delivery != null && !delivery.getMail().isEmpty());
 
-        deliveries = tag.getInt("Deliveries");
-        spawnPos = NbtUtils.readBlockPos(tag, "SpawnPos").orElse(null);
+        deliveries = input.getIntOr("Deliveries", 0);
+        spawnPos = input.read("SpawnPos", BlockPos.CODEC).orElse(null);
     }
 
     public class LeaveGoal extends AbstractGoToBlockGoal {

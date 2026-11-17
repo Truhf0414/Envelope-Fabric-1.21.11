@@ -43,7 +43,7 @@ public class MailService {
     protected @Nullable BackgroundDelivery backgroundDelivery;
 
     private MailService(ServerLevel level) {
-        Preconditions.checkArgument(operatesIn(level), "MailService cannot exist in the '" + level.dimension().location() + "' dimension.");
+        Preconditions.checkArgument(operatesIn(level), "MailService cannot exist in the '" + level.dimension().identifier() + "' dimension.");
         this.level = level;
         this.mailboxes = new Mailboxes(level);
         this.serviceAddresses = new ServiceAddresses(this);

@@ -118,7 +118,7 @@ public interface PhysicalCourier extends Courier {
             ItemStack mail = delivery.getPhase().isOnRecipientSide()
                   ? Mail.asDelivered(delivery.getMail())
                   : delivery.getMail();
-            entity.spawnAtLocation(mail);
+            entity.spawnAtLocation(level, mail); // 1.21.11: + level
             delivery.setMail(ItemStack.EMPTY);
         }
     }
@@ -159,7 +159,7 @@ public interface PhysicalCourier extends Courier {
     default <T extends ParticleOptions> void sendLongDistanceParticles(ServerLevel level, T type, double posX, double posY, double posZ,
                                                                        int particleCount, double xOffset, double yOffset, double zOffset, double speed) {
         for (ServerPlayer player : level.players()) {
-            level.sendParticles(player, type, true, posX, posY, posZ, particleCount,
+            level.sendParticles(player, type, true, false, posX, posY, posZ, particleCount, // 1.21.11: + alwaysShow
                   (float) xOffset, (float) yOffset, (float) zOffset, (float) speed);
         }
     }

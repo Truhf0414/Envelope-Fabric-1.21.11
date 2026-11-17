@@ -4,19 +4,25 @@ import com.mojang.serialization.Codec;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.util.random.WeightedList;
 
-public record ComponentProvider(WeightedRandomList<WeightedComponent> list) {
-    public static final Codec<ComponentProvider> CODEC = WeightedRandomList.codec(WeightedComponent.FULL_CODEC)
+import java.util.List;
+
+// 1.21.11: WeightedRandomList became WeightedList<E> of Weighted<E>. The codec is still a plain list of
+// WeightedComponent ({component, weight}), which is what WeightedRandomList.codec(FULL_CODEC) wrote.
+public record ComponentProvider(List<WeightedComponent> list) {
+    public static final Codec<ComponentProvider> CODEC = WeightedComponent.FULL_CODEC.listOf()
           .xmap(ComponentProvider::new, ComponentProvider::list);
 
-    public static final ComponentProvider EMPTY = new ComponentProvider(WeightedRandomList.create());
+    public static final ComponentProvider EMPTY = new ComponentProvider(List.of());
 
     public static ComponentProvider of(Component component) {
-        return new ComponentProvider(WeightedRandomList.create(new WeightedComponent(component)));
+        return new ComponentProvider(List.of(new WeightedComponent(component)));
     }
 
     public Component get(RandomSource randomSource) {
-        return list.getRandom(randomSource).map(WeightedComponent::getComponent).orElse(CommonComponents.EMPTY);
+        return WeightedList.of(list.stream().map(WeightedComponent::asWeighted).toList())
+              .getRandom(randomSource)
+              .orElse(CommonComponents.EMPTY);
     }
 }

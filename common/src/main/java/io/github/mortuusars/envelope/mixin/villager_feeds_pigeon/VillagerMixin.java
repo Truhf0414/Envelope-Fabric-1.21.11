@@ -3,7 +3,6 @@ package io.github.mortuusars.envelope.mixin.villager_feeds_pigeon;
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.VillagerPigeonFeeding;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ReputationEventHandler;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
@@ -18,6 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 @Mixin(Villager.class)
 public abstract class VillagerMixin extends AbstractVillager
@@ -60,14 +61,14 @@ public abstract class VillagerMixin extends AbstractVillager
     // --
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
-    private void save(CompoundTag tag, CallbackInfo ci) {
-        if (envelope$pigeonFoodPickupDelay > 0) tag.putInt("EnvelopeItemPickupDelay", envelope$pigeonFoodPickupDelay);
-        if (envelope$pigeonFeedCooldown > 0) tag.putInt("EnvelopePigeonFeedCooldown", envelope$pigeonFeedCooldown);
+    private void save(ValueOutput output, CallbackInfo ci) { // 1.21.11: CompoundTag -> ValueOutput
+        if (envelope$pigeonFoodPickupDelay > 0) output.putInt("EnvelopeItemPickupDelay", envelope$pigeonFoodPickupDelay);
+        if (envelope$pigeonFeedCooldown > 0) output.putInt("EnvelopePigeonFeedCooldown", envelope$pigeonFeedCooldown);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
-    private void load(CompoundTag tag, CallbackInfo ci) {
-        envelope$pigeonFoodPickupDelay = tag.getInt("EnvelopeItemPickupDelay");
-        envelope$pigeonFeedCooldown = tag.getInt("EnvelopePigeonFeedCooldown");
+    private void load(ValueInput input, CallbackInfo ci) { // 1.21.11: CompoundTag -> ValueInput
+        envelope$pigeonFoodPickupDelay = input.getIntOr("EnvelopeItemPickupDelay", 0);
+        envelope$pigeonFeedCooldown = input.getIntOr("EnvelopePigeonFeedCooldown", 0);
     }
 }

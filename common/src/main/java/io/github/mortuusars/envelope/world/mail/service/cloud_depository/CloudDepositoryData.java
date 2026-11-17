@@ -17,7 +17,7 @@ public class CloudDepositoryData extends PersistentData {
                 .forGetter(CloudDepositoryData::accounts)
     ).apply(i, CloudDepositoryData::new));
 
-    public static final Type<CloudDepositoryData> TYPE = new Type<>(ServiceAddress.CLOUD_DEPOSITORY.location(), CloudDepositoryData::new, CODEC);
+    public static final Type<CloudDepositoryData> TYPE = new Type<>(ServiceAddress.CLOUD_DEPOSITORY.identifier(), CloudDepositoryData::new, CODEC);
 
     private final Map<String, Account> accounts;
 

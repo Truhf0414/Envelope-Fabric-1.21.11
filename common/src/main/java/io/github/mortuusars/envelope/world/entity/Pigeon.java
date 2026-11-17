@@ -21,9 +21,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -74,6 +71,8 @@ import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.feline.Ocelot;
 import net.minecraft.world.entity.animal.fox.Fox;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 // 1.21.11: VariantHolder was removed; getVariant/setVariant stay as plain methods. Consumable.OverrideConsumeSound replaces getEatingSound.
 public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Consumable.OverrideConsumeSound {
@@ -813,72 +812,49 @@ public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Con
 
     // -- Save / Load
 
+    // 1.21.11: entity save/load goes through ValueOutput/ValueInput. Codec values are stored with registry-aware ops;
+    // read/store failures are reported (and logged) by the ProblemReporter instead of our own LOGGER calls.
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.put("PigeonholeHandler", PigeonholeHandler.CODEC.encode(getPigeonholeHandler(), NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
-        tag.put("MailboxHandler", MailboxHandler.CODEC.encode(getMailboxHandler(), NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.store("PigeonholeHandler", PigeonholeHandler.CODEC, getPigeonholeHandler());
+        output.store("MailboxHandler", MailboxHandler.CODEC, getMailboxHandler());
         getVariant()
               .unwrapKey()
-              .ifPresent(key -> tag.putString("Variant", key.location().toString()));
-        if (isSitting()) tag.putBoolean("Sitting", true);
-        if (getTiredTicks() > 0) tag.putInt("TiredTicks", getTiredTicks());
-        if (getEatingTicks() > 0) tag.putInt("EatingTicks", getEatingTicks());
+              .ifPresent(key -> output.putString("Variant", key.identifier().toString()));
+        if (isSitting()) output.putBoolean("Sitting", true);
+        if (getTiredTicks() > 0) output.putInt("TiredTicks", getTiredTicks());
+        if (getEatingTicks() > 0) output.putInt("EatingTicks", getEatingTicks());
 
-        if (timeInUltraWarmDimension > 0) tag.putInt("TimeInUltraWarmDimension", timeInUltraWarmDimension);
+        if (timeInUltraWarmDimension > 0) output.putInt("TimeInUltraWarmDimension", timeInUltraWarmDimension);
 
-        if (delivery != null) {
-            Delivery.CODEC.encodeStart(registryAccess().createSerializationContext(NbtOps.INSTANCE), delivery)
-                  .resultOrPartial(LOGGER::error)
-                  .ifPresent(value -> tag.put("Delivery", value));
-        }
-
-        if (origin != null) {
-            CourierOrigin.CODEC.encodeStart(NbtOps.INSTANCE, origin)
-                  .resultOrPartial(LOGGER::error)
-                  .ifPresent(value -> tag.put("Origin", value));
-        }
+        output.storeNullable("Delivery", Delivery.CODEC, delivery);
+        output.storeNullable("Origin", CourierOrigin.CODEC, origin);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
 
-        PigeonholeHandler.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("PigeonholeHandler"))
-              .resultOrPartial(e -> LOGGER.error("Cannot parse PigeonholeHandler from tag '{}': {}", tag.getCompound("PigeonholeHandler"), e))
-              .ifPresent(this::setPigeonholeHandler);
-        MailboxHandler.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("MailboxHandler"))
-              .resultOrPartial(e -> LOGGER.error("Cannot parse MailboxHandler from tag '{}': {}", tag.getCompound("MailboxHandler"), e))
-              .ifPresent(this::setMailboxHandler);
+        input.read("PigeonholeHandler", PigeonholeHandler.CODEC).ifPresent(this::setPigeonholeHandler);
+        input.read("MailboxHandler", MailboxHandler.CODEC).ifPresent(this::setMailboxHandler);
 
-        String variant = tag.contains("Variant", Tag.TAG_INT)
-              ? PigeonVariant.fromLegacyId(tag.getInt("Variant"))
-              : tag.getString("Variant");
-
-        Optional.ofNullable(Identifier.tryParse(variant))
+        // String id first; the legacy int id is only a fallback (reading the int first would report a type problem for every new save).
+        input.getString("Variant")
+              .or(() -> input.getInt("Variant").map(PigeonVariant::fromLegacyId))
+              .map(Identifier::tryParse)
               .map(key -> ResourceKey.create(Envelope.Registries.PIGEON_VARIANT, key))
-              .flatMap(key -> registryAccess().registryOrThrow(Envelope.Registries.PIGEON_VARIANT)
-                    .getHolder(key))
+              .flatMap(key -> registryAccess().lookupOrThrow(Envelope.Registries.PIGEON_VARIANT).get(key))
               .ifPresent(this::setVariant);
 
-        setSitting(tag.getBoolean("Sitting"));
-        setTiredTicks(tag.getInt("TiredTicks"));
-        setEatingTicks(tag.getInt("EatingTicks"));
+        setSitting(input.getBooleanOr("Sitting", false));
+        setTiredTicks(input.getIntOr("TiredTicks", 0));
+        setEatingTicks(input.getIntOr("EatingTicks", 0));
 
-        timeInUltraWarmDimension = tag.getInt("TimeInUltraWarmDimension");
+        timeInUltraWarmDimension = input.getIntOr("TimeInUltraWarmDimension", 0);
 
-        if (tag.contains("Delivery")) {
-            setDelivery(Delivery.CODEC.parse(registryAccess().createSerializationContext(NbtOps.INSTANCE), tag.getCompound("Delivery"))
-                  .resultOrPartial(e -> LOGGER.error("Cannot parse Delivery from tag '{}': {}", tag.getCompound("Delivery"), e))
-                  .orElse(null)
-            );
-        }
-
-        if (tag.contains("Origin")) {
-            setOrigin(CourierOrigin.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Origin"))
-                  .resultOrPartial(e -> LOGGER.error("Cannot parse CourierOrigin from tag '{}': {}", tag.getCompound("Origin"), e))
-                  .orElse(null));
-        }
+        input.read("Delivery", Delivery.CODEC).ifPresent(this::setDelivery);
+        input.read("Origin", CourierOrigin.CODEC).ifPresent(this::setOrigin);
 
         setDelivering(delivery != null);
         setHasMail(delivery != null && !delivery.getMail().isEmpty());

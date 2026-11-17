@@ -18,6 +18,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class PackageBlockEntity extends BlockEntity {
     protected ItemStack item = ItemStack.EMPTY;
@@ -86,17 +88,16 @@ public class PackageBlockEntity extends BlockEntity {
 
     // --
 
+    // 1.21.11: block entity save/load goes through ValueOutput/ValueInput; ItemStack#save/parse became ItemStack.CODEC.
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void saveAdditional(ValueOutput output) {
         if (!item.isEmpty()) {
-            tag.put("Package", item.save(registries, new CompoundTag()));
+            output.store("Package", ItemStack.CODEC, item);
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        if (tag.contains("Package", CompoundTag.TAG_COMPOUND)) {
-            item = ItemStack.parse(registries, tag.getCompound("Package")).orElse(ItemStack.EMPTY);
-        }
+    protected void loadAdditional(ValueInput input) {
+        input.read("Package", ItemStack.CODEC).ifPresent(item -> this.item = item);
     }
 }
