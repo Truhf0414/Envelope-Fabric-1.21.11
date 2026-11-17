@@ -2,14 +2,10 @@ package io.github.mortuusars.envelope;
 
 import io.github.mortuusars.envelope.client.gui.tooltip.*;
 import io.github.mortuusars.envelope.client.renderer.SealRenderer;
-import io.github.mortuusars.envelope.util.bugger.EnvelopeBuggerPage;
-import io.github.mortuusars.envelope.util.bugger.PigeonEntityDataDisplay;
 import io.github.mortuusars.envelope.world.inventory.tooltip.SealDieTooltip;
 import io.github.mortuusars.envelope.world.item.component.*;
 import io.github.mortuusars.envelope.world.item.component.seal.Seal;
 import io.github.mortuusars.envelope.world.item.tooltip.MailAddressTagTooltip;
-import io.github.mortuusars.envelope.lib.mortaar.bugger.screen.BuggerEntityOverhead;
-import io.github.mortuusars.envelope.lib.mortaar.bugger.screen.BuggerScreen;
 import io.github.mortuusars.envelope.lib.mortaar.client.gui.tooltip.Tooltips;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -29,9 +25,7 @@ public class EnvelopeClient {
         Tooltips.register(PaybackRequest.class, PaybackRequestTooltipComponent::new);
         Tooltips.register(Seal.class, SealTooltipComponent::new);
         Tooltips.register(SealDieTooltip.class, sealDie -> new SealDieTooltipComponent(sealDie.die()));
-
-        BuggerScreen.addPage(new EnvelopeBuggerPage());
-        BuggerEntityOverhead.addData(new PigeonEntityDataDisplay());
+        // 1.21.11 (port decision D-a): Mortaar's Bugger debug screen and entity overhead display were removed
     }
 
     public static SealRenderer getSealRenderer() {
