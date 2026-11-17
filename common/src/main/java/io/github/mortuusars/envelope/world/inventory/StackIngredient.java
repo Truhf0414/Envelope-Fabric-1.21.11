@@ -8,7 +8,7 @@ import io.github.mortuusars.envelope.Envelope;
 import net.minecraft.util.Util;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -38,6 +38,8 @@ import java.util.Optional;
  * It is detached from all vanilla ingredient system, so logic for it has to be manually written.
  */
 @SuppressWarnings("deprecation")
+// 1.21.11: the exact-match DataComponentPredicate was renamed to DataComponentExactPredicate
+// (DataComponentPredicate is now the typed predicate interface used by item predicates).
 public class StackIngredient {
     public static final Codec<StackIngredient> CODEC = RecordCodecBuilder.create(i -> i.group(
           HolderSetCodec.create(Registries.ITEM, BuiltInRegistries.ITEM.holderByNameCodec(), false)
@@ -46,8 +48,8 @@ public class StackIngredient {
           ExtraCodecs.intRange(1, 99)
                 .optionalFieldOf("count", 1)
                 .forGetter(StackIngredient::count),
-          DataComponentPredicate.CODEC
-                .optionalFieldOf("components", DataComponentPredicate.EMPTY)
+          DataComponentExactPredicate.CODEC
+                .optionalFieldOf("components", DataComponentExactPredicate.EMPTY)
                 .forGetter(StackIngredient::components),
           Codec.BOOL
                 .optionalFieldOf("strict", false)
@@ -57,18 +59,18 @@ public class StackIngredient {
     public static final StreamCodec<RegistryFriendlyByteBuf, StackIngredient> STREAM_CODEC = StreamCodec.composite(
           ByteBufCodecs.holderSet(Registries.ITEM), StackIngredient::items,
           ByteBufCodecs.INT, StackIngredient::count,
-          DataComponentPredicate.STREAM_CODEC, StackIngredient::components,
+          DataComponentExactPredicate.STREAM_CODEC, StackIngredient::components,
           ByteBufCodecs.BOOL, StackIngredient::isStrict,
           StackIngredient::new
     );
 
     private final HolderSet<Item> items;
     private final int count;
-    private final DataComponentPredicate components;
+    private final DataComponentExactPredicate components;
     private final boolean strict;
     private @Nullable ItemStack[] stacks;
 
-    public StackIngredient(HolderSet<Item> items, int count, DataComponentPredicate components, boolean strict) {
+    public StackIngredient(HolderSet<Item> items, int count, DataComponentExactPredicate components, boolean strict) {
         Preconditions.checkArgument(count >= 1 && count <= 99, "Count must be in range 1-99.");
         this.items = items;
         this.count = count;
@@ -76,31 +78,31 @@ public class StackIngredient {
         this.strict = strict;
     }
 
-    public StackIngredient(Item item, int count, DataComponentPredicate components) {
+    public StackIngredient(Item item, int count, DataComponentExactPredicate components) {
         this(HolderSet.direct(item.builtInRegistryHolder()), count, components, false);
     }
 
     public StackIngredient(Item item, int count) {
-        this(item, count, DataComponentPredicate.EMPTY);
+        this(item, count, DataComponentExactPredicate.EMPTY);
     }
 
     public StackIngredient(Item item) {
         this(item, 1);
     }
 
-    public StackIngredient(TagKey<Item> tag, int count, DataComponentPredicate components) {
-        this(BuiltInRegistries.ITEM.getTag(tag)
+    public StackIngredient(TagKey<Item> tag, int count, DataComponentExactPredicate components) {
+        this(BuiltInRegistries.ITEM.get(tag) // 1.21.11: Registry#getTag -> get(TagKey)
               .or(() -> {
                   // This fallback is for datagen, where getting tag from registry fails.
                   LogUtils.getLogger().warn("Failed to get tag '#{}' from BuiltInRegistries.ITEM. Will use empty set.", tag.location());
-                  return Optional.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM.holderOwner(), tag));
+                  return Optional.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM, tag) /* 1.21.11: the registry is its own HolderOwner */);
               })
               .orElseThrow(),
               count, components, false);
     }
 
     public StackIngredient(TagKey<Item> tag, int count) {
-        this(tag, count, DataComponentPredicate.EMPTY);
+        this(tag, count, DataComponentExactPredicate.EMPTY);
     }
 
     public StackIngredient(TagKey<Item> tag) {
@@ -111,7 +113,7 @@ public class StackIngredient {
 
     public static StackIngredient createDefault() {
         return new StackIngredient(HolderSet.direct(Items.EMERALD.builtInRegistryHolder()),
-              1, DataComponentPredicate.EMPTY, false);
+              1, DataComponentExactPredicate.EMPTY, false);
     }
 
     public static StackIngredient createFromStack(ItemStack stack) {
@@ -125,7 +127,7 @@ public class StackIngredient {
         DataComponentMap uniqueComponents = components.filter(type ->
               !Objects.equals(components.get(type), defaultComponents.get(type)));
         return new StackIngredient(HolderSet.direct(stack.getItemHolder()), stack.getCount(),
-              DataComponentPredicate.allOf(uniqueComponents), false);
+              DataComponentExactPredicate.allOf(uniqueComponents), false);
     }
 
     // --
@@ -138,7 +140,7 @@ public class StackIngredient {
         return count;
     }
 
-    public DataComponentPredicate components() {
+    public DataComponentExactPredicate components() {
         return components;
     }
 

@@ -33,9 +33,9 @@ public record ServerboundAddressTagApplyPacket(int slot, Optional<Address> addre
 
     @Override
     public boolean handle(PacketFlow direction, Player player) {
-        if (slot < 0 || slot > player.getInventory().items.size()) {
+        if (slot < 0 || slot > player.getInventory().getNonEquipmentItems().size()) {
             Envelope.LOGGER.error("Cannot handle {} packet: slot {} is not in valid range (0 - {}).",
-                    ID, slot, player.getInventory().items.size());
+                    ID, slot, player.getInventory().getNonEquipmentItems().size());
             return false;
         }
 

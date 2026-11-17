@@ -94,7 +94,7 @@ public class PackageMenu extends AbstractInHandContainerMenu {
             onDestroyed(player, stack);
             stack.shrink(1);
 
-            player.level().playSound(player, player, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1, 1);
+            player.level().playSound(player, player, SoundEvents.ITEM_BREAK.value(), SoundSource.PLAYERS, 1, 1); // 1.21.11: ITEM_BREAK is a Holder
         } else if (getItemInHand().remove(Envelope.DataComponents.OPEN) != null) {
             player.resetAttackStrengthTicker();
         }
