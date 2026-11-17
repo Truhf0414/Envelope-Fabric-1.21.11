@@ -135,9 +135,13 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
               server.getRecipeManager().getRecipes().stream()
                     .filter(holder -> holder.value().getType() == Envelope.RecipeTypes.MAILING.get())
                     .toList().size());
+        // Only Envelope's own serializers are opted into the sync (EnvelopeFabric). Envelope's plain shaped and
+        // shapeless recipes use vanilla serializers, which are not Envelope's to synchronize.
         int envelopeOnServer = singleplayer.getServer().computeOnServer(server ->
               (int) server.getRecipeManager().getRecipes().stream()
-                    .filter(holder -> holder.id().identifier().getNamespace().equals(Envelope.ID)).count());
+                    .filter(holder -> holder.id().identifier().getNamespace().equals(Envelope.ID))
+                    .filter(holder -> net.minecraft.core.registries.BuiltInRegistries.RECIPE_SERIALIZER
+                          .getKey(holder.value().getSerializer()).getNamespace().equals(Envelope.ID)).count());
         int onClient = context.computeOnClient(client ->
               ((FabricRecipeManager) client.level.recipeAccess()).getSynchronizedRecipes()
                     .getAllOfType(Envelope.RecipeTypes.MAILING.get()).size());
@@ -148,8 +152,8 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         write(results.resolve("recipe_sync.txt"), List.of(
               "mailing recipes on server: " + onServer,
               "mailing recipes on client (synchronized): " + onClient,
-              "envelope recipes on server (all types): " + envelopeOnServer,
-              "envelope recipes on client (synchronized, all types): " + envelopeOnClient));
+              "envelope recipes with an envelope serializer on server: " + envelopeOnServer,
+              "envelope recipes on client (synchronized): " + envelopeOnClient));
 
         if (onServer != onClient) {
             problems.add("recipe sync: server has " + onServer + " mailing recipes, client received " + onClient);

@@ -28,7 +28,10 @@ public interface Codecs {
               .listOf()
               .flatXmap(
                     list -> {
-                        Ingredient[] ingredients = list.stream().filter(ingredient -> !ingredient.isEmpty()).toArray(Ingredient[]::new);
+                        // 1.21.11: upstream filtered out empty ingredients here. Ingredient.CODEC can no longer produce
+                        // an empty one, and asking a tag ingredient whether it is empty reads the tag, which is not
+                        // bound yet while recipes are being loaded ("Trying to access unbound tag").
+                        Ingredient[] ingredients = list.toArray(Ingredient[]::new);
                         if (ingredients.length == 0) {
                             return DataResult.error(() -> "No ingredients for " + type.toString() + " recipe");
                         } else {

@@ -42,7 +42,7 @@ final class DataCounts {
         List<String> lines = new ArrayList<>();
         ResourceManager resources = server.getResourceManager();
 
-        compare(lines, "recipe", files(resources, "recipe", ".json"),
+        compare(lines, "recipe", unconditional(resources, "recipe", lines),
               server.getRecipeManager().getRecipes().stream().map(holder -> holder.id().identifier()));
         compare(lines, "advancement", files(resources, "advancement", ".json"),
               server.getAdvancements().getAllAdvancements().stream().map(holder -> holder.id()));
@@ -93,6 +93,31 @@ final class DataCounts {
               .filter(file -> file.getNamespace().equals(Envelope.ID))
               .map(converter::fileToId)
               .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    /**
+     * Recipe files without the ones Fabric's load conditions switch off in this environment (for example a recipe
+     * that needs another mod). Those are meant not to load; they are listed so nothing disappears silently.
+     */
+    private static Set<Identifier> unconditional(ResourceManager resources, String folder, List<String> lines) {
+        FileToIdConverter converter = new FileToIdConverter(folder, ".json");
+        Set<Identifier> ids = new TreeSet<>();
+        converter.listMatchingResources(resources).forEach((file, resource) -> {
+            if (!file.getNamespace().equals(Envelope.ID)) return;
+            Identifier id = converter.fileToId(file);
+            try (java.io.Reader reader = resource.openAsReader()) {
+                com.google.gson.JsonObject json = com.google.gson.JsonParser.parseReader(reader).getAsJsonObject();
+                if (json.has("fabric:load_conditions")) {
+                    lines.add("NOTE      " + folder + ": " + id.getPath() + " has fabric:load_conditions "
+                          + json.get("fabric:load_conditions") + " and is not counted");
+                    return;
+                }
+            } catch (Exception e) {
+                lines.add("MISMATCH  " + folder + ": " + id.getPath() + " could not be read: " + e);
+            }
+            ids.add(id);
+        });
+        return ids;
     }
 
     private static void compare(List<String> lines, String kind, Set<Identifier> files, java.util.stream.Stream<Identifier> loadedIds) {

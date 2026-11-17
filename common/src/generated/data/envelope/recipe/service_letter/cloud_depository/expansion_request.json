@@ -3,18 +3,10 @@
   "category": "misc",
   "group": "service_letters",
   "ingredients": [
-    {
-      "item": "envelope:letter_and_quill"
-    },
-    {
-      "item": "envelope:address_tag"
-    },
-    {
-      "item": "minecraft:copper_ingot"
-    },
-    {
-      "item": "minecraft:diamond"
-    }
+    "envelope:letter_and_quill",
+    "envelope:address_tag",
+    "minecraft:copper_ingot",
+    "minecraft:diamond"
   ],
   "result": {
     "components": {
