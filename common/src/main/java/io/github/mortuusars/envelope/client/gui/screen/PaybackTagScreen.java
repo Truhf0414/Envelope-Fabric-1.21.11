@@ -15,10 +15,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -28,9 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.client.Minecraft;
 
 public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMenu> {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/payback_tag.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/payback_tag.png");
 
     public static final WidgetSprites CONFIRM_BUTTON_SPRITES = Sprites.threeStates(Envelope.resource("payback/confirm"));
 
@@ -153,7 +153,7 @@ public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMe
 
         if (hoveredSlot != null && hoveredSlot.index < PaybackRequest.SLOTS) {
             boolean decreasing = scrollY < 0;
-            boolean fast = Screen.hasShiftDown();
+            boolean fast = Minecraft.getInstance().hasShiftDown();
             changeRequestedItemCount(decreasing, fast);
             return true;
         }
@@ -169,12 +169,12 @@ public class PaybackTagScreen extends AbstractInHandContainerScreen<PaybackTagMe
 
         if (hoveredSlot != null && hoveredSlot.index < PaybackRequest.SLOTS) {
             if (keyCode == InputConstants.KEY_ADD || keyCode == InputConstants.KEY_EQUALS) {
-                changeRequestedItemCount(false, Screen.hasShiftDown());
+                changeRequestedItemCount(false, Minecraft.getInstance().hasShiftDown());
                 return true;
             }
 
             if (keyCode == 333 /*KEY_SUBTRACT*/ || keyCode == InputConstants.KEY_MINUS) {
-                changeRequestedItemCount(true, Screen.hasShiftDown());
+                changeRequestedItemCount(true, Minecraft.getInstance().hasShiftDown());
                 return true;
             }
         }

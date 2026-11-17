@@ -6,21 +6,21 @@ import io.github.mortuusars.envelope.world.item.component.seal.*;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.lib.mortaar.util.color.TintColor;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class SealRenderer {
-    public static final ResourceLocation IRON_DIE_SPRITE = Envelope.resource("seal/die/iron");
-    public static final ResourceLocation SEAL_GLINT_SPRITE = Envelope.resource("seal/glint");
-    public static final ResourceLocation LOCK_SPRITE = Envelope.resource("seal/lock");
-    public static final ResourceLocation LOCKED_OVERLAY_SPRITE = Envelope.resource("seal/locked_overlay");
+    public static final Identifier IRON_DIE_SPRITE = Envelope.resource("seal/die/iron");
+    public static final Identifier SEAL_GLINT_SPRITE = Envelope.resource("seal/glint");
+    public static final Identifier LOCK_SPRITE = Envelope.resource("seal/lock");
+    public static final Identifier LOCKED_OVERLAY_SPRITE = Envelope.resource("seal/locked_overlay");
 
     public void render(Seal seal, GuiGraphics guiGraphics, int x, int y) {
         SealMaterial material = seal.material().value();
         ShadingPalette colors = material.impressionPalette();
 
-        ResourceLocation materialTexture = material.sprite();
-        ResourceLocation impressionTexture = seal.impression().value().sprite();
+        Identifier materialTexture = material.sprite();
+        Identifier impressionTexture = seal.impression().value().sprite();
 
         // Background
         guiGraphics.blitSprite(materialTexture, x, y, 32, 32);
@@ -85,7 +85,7 @@ public class SealRenderer {
         // Background
         guiGraphics.blitSprite(IRON_DIE_SPRITE, x, y, 30, 30);
 
-        ResourceLocation impressionSprite = impression.sprite();
+        Identifier impressionSprite = impression.sprite();
 
         // flipping the sprite on the X axis is a bit tricky, hopefully it'll not break
 

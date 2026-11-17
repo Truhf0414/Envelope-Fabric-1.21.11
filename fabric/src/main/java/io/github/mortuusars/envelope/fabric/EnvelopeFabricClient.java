@@ -1,6 +1,6 @@
 package io.github.mortuusars.envelope.fabric;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.client.ConfigScreenFactoryRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.client.ConfigScreenFactoryRegistry;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.EnvelopeClient;
 import io.github.mortuusars.envelope.client.gui.screen.*;

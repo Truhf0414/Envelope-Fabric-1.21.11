@@ -16,7 +16,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -143,7 +143,7 @@ public abstract class AbstractMailboxAddressScreen extends AddressTagScreen {
         if (cost <= 0) return;
 
         boolean hasEnough = player.experienceLevel >= cost;
-        ResourceLocation sprite = Envelope.resource("address_tag/experience" + (hasEnough ? "" : "_disabled"));
+        Identifier sprite = Envelope.resource("address_tag/experience" + (hasEnough ? "" : "_disabled"));
 
         int x = 159;
         int y = 4;

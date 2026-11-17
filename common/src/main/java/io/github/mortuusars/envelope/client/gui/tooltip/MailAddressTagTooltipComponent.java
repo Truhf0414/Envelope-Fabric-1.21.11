@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import net.minecraft.client.Minecraft;
 
 public class MailAddressTagTooltipComponent implements ClientTooltipComponent {
     private static final ItemStack ADDRESS_TAG = new ItemStack(Envelope.Items.ADDRESS_TAG.get());
@@ -27,7 +28,7 @@ public class MailAddressTagTooltipComponent implements ClientTooltipComponent {
 
     @Override
     public int getWidth(Font font) {
-//        if (Screen.hasShiftDown()) {
+//        if (Minecraft.getInstance().hasShiftDown()) {
 //            return Math.max(19, Math.max(font.width(fullSenderComponent), font.width(fullComponent)));
 //        }
         return 19 + font.width(component);
@@ -35,7 +36,7 @@ public class MailAddressTagTooltipComponent implements ClientTooltipComponent {
 
     @Override
     public int getHeight() {
-//        if (Screen.hasShiftDown()) {
+//        if (Minecraft.getInstance().hasShiftDown()) {
 //            return 16 + (!isEmpty(fullSenderComponent) ? 10 : 0) + (!isEmpty(fullComponent) ? 10 : 0);
 //        }
         return 16;
@@ -48,7 +49,7 @@ public class MailAddressTagTooltipComponent implements ClientTooltipComponent {
 
     @Override
     public void renderText(Font font, int x, int y, Matrix4f matrix, MultiBufferSource.BufferSource bufferSource) {
-//        if (Screen.hasShiftDown()) {
+//        if (Minecraft.getInstance().hasShiftDown()) {
 //            y += 16;
 //
 //            if (!isEmpty(fullSenderComponent)) {

@@ -15,7 +15,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,10 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LetterViewScreen extends Screen {
-    public static final ResourceLocation REGULAR_TEXTURE = Envelope.resource("textures/gui/letter.png");
-    public static final ResourceLocation TATTERED_TEXTURE = Envelope.resource("textures/gui/letter_tattered.png");
-    public static final ResourceLocation TATTERED_OVERLAY = Envelope.resource("textures/gui/letter_tattered_overlay.png");
-    public static final ResourceLocation SERVICE_TEXTURE = Envelope.resource("textures/gui/letter_service.png");
+    public static final Identifier REGULAR_TEXTURE = Envelope.resource("textures/gui/letter.png");
+    public static final Identifier TATTERED_TEXTURE = Envelope.resource("textures/gui/letter_tattered.png");
+    public static final Identifier TATTERED_OVERLAY = Envelope.resource("textures/gui/letter_tattered_overlay.png");
+    public static final Identifier SERVICE_TEXTURE = Envelope.resource("textures/gui/letter_service.png");
 
     protected final ItemAndStack<LetterItem> letter;
     protected final @Nullable InteractionHand hand;
@@ -121,7 +121,7 @@ public class LetterViewScreen extends Screen {
         guiGraphics.blit(getBackgroundTexture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
     }
 
-    public ResourceLocation getBackgroundTexture() {
+    public Identifier getBackgroundTexture() {
         if (isService) return SERVICE_TEXTURE;
         return isTattered ? TATTERED_TEXTURE : REGULAR_TEXTURE;
     }

@@ -27,7 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import java.util.List;
 
 @JeiPlugin
 public class EnvelopeJeiPlugin implements IModPlugin {
-    private static final ResourceLocation ID = Envelope.resource("jei_plugin");
+    private static final Identifier ID = Envelope.resource("jei_plugin");
 
     public static IJeiRuntime runtime;
 
@@ -48,7 +48,7 @@ public class EnvelopeJeiPlugin implements IModPlugin {
     };
 
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
+    public @NotNull Identifier getPluginUid() {
         return ID;
     }
 

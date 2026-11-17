@@ -6,7 +6,7 @@ import io.github.mortuusars.envelope.world.inventory.slot.PreviewSlot;
 import io.github.mortuusars.envelope.world.item.PaybackPackageItem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class PaybackPackageScreen extends AbstractInHandContainerScreen<PaybackPackageMenu> {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/payback_package.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/payback_package.png");
 
     public PaybackPackageScreen(PaybackPackageMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, TEXTURE);

@@ -9,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import org.joml.Matrix4f;
 
 public class SealTooltipComponent implements ClientTooltipComponent {
@@ -41,9 +41,9 @@ public class SealTooltipComponent implements ClientTooltipComponent {
         // Signature:
         x += 36;
         y += 12;
-        int mainColor = FastColor.ARGB32.lerp(0.25f, seal.material().value().impressionPalette().highlight().tint(), 0xFFFFFFFF);
-        int outlineColor = FastColor.ARGB32.lerp(0.25f, seal.material().value().impressionPalette().side().tint(), 0xFF7F7F7F);
-        int shadowColor = FastColor.ARGB32.lerp(0.25f, seal.material().value().impressionPalette().shadow().tint(), 0xFF333333);
+        int mainColor = ARGB.srgbLerp(0.25f, seal.material().value().impressionPalette().highlight().tint(), 0xFFFFFFFF);
+        int outlineColor = ARGB.srgbLerp(0.25f, seal.material().value().impressionPalette().side().tint(), 0xFF7F7F7F);
+        int shadowColor = ARGB.srgbLerp(0.25f, seal.material().value().impressionPalette().shadow().tint(), 0xFF333333);
         text(seal.signature(), font, x - 1, y, outlineColor, matrix, buffer);
         text(seal.signature(), font, x - 1, y - 1, outlineColor, matrix, buffer);
         text(seal.signature(), font, x, y - 1, outlineColor, matrix, buffer);

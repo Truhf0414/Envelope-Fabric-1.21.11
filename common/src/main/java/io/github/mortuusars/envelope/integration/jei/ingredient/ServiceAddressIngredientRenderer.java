@@ -71,7 +71,7 @@ public class ServiceAddressIngredientRenderer implements IIngredientRenderer<Ser
                   Component.literal("⌚" + EnvelopeSymbols.SMALL_SPACE)
                         .append(GameTime.format(travelDuration, true)).withStyle(ChatFormatting.GRAY),
                   Component.literal(ingredient.getDefinitionHolder().unwrapKey()
-                        .map(key -> key.location().toString()).orElse("<unknown>")).withStyle(ChatFormatting.DARK_GRAY));
+                        .map(key -> key.identifier().toString()).orElse("<unknown>")).withStyle(ChatFormatting.DARK_GRAY));
         } else {
             return List.of(ingredient.format().withIcon().toComponent());
         }

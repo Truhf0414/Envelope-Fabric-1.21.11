@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.client.gui.widget.textbox.text;
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.mortuusars.envelope.Envelope;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
@@ -194,19 +194,19 @@ public class FormattedStringEditor {
             selectAll();
             return true;
         }
-        if (key == InputConstants.KEY_C && Screen.hasControlDown() && !Screen.hasAltDown()) {
-            copy(Screen.hasShiftDown());
+        if (key == InputConstants.KEY_C && Minecraft.getInstance().hasControlDown() && !Minecraft.getInstance().hasAltDown()) {
+            copy(Minecraft.getInstance().hasShiftDown());
             return true;
         }
-        if (key == InputConstants.KEY_V && Screen.hasControlDown() && !Screen.hasAltDown()) {
-            paste(Screen.hasShiftDown());
+        if (key == InputConstants.KEY_V && Minecraft.getInstance().hasControlDown() && !Minecraft.getInstance().hasAltDown()) {
+            paste(Minecraft.getInstance().hasShiftDown());
             return true;
         }
-        if (key == InputConstants.KEY_X && Screen.hasControlDown() && !Screen.hasAltDown()) {
-            cut(Screen.hasShiftDown());
+        if (key == InputConstants.KEY_X && Minecraft.getInstance().hasControlDown() && !Minecraft.getInstance().hasAltDown()) {
+            cut(Minecraft.getInstance().hasShiftDown());
             return true;
         }
-        CursorStep cursorStep = Screen.hasControlDown() ? CursorStep.WORD : CursorStep.CHARACTER;
+        CursorStep cursorStep = Minecraft.getInstance().hasControlDown() ? CursorStep.WORD : CursorStep.CHARACTER;
         if (key == InputConstants.KEY_BACKSPACE) {
             removeFromCursor(-1, cursorStep);
             return true;
@@ -216,19 +216,19 @@ public class FormattedStringEditor {
             return true;
         }
         if (key == InputConstants.KEY_LEFT) {
-            moveCursorBy(-1, Screen.hasShiftDown(), cursorStep);
+            moveCursorBy(-1, Minecraft.getInstance().hasShiftDown(), cursorStep);
             return true;
         }
         if (key == InputConstants.KEY_RIGHT) {
-            moveCursorBy(1, Screen.hasShiftDown(), cursorStep);
+            moveCursorBy(1, Minecraft.getInstance().hasShiftDown(), cursorStep);
             return true;
         }
         if (key == InputConstants.KEY_HOME) {
-            setCursorToStart(Screen.hasShiftDown());
+            setCursorToStart(Minecraft.getInstance().hasShiftDown());
             return true;
         }
         if (key == InputConstants.KEY_END) {
-            setCursorToEnd(Screen.hasShiftDown());
+            setCursorToEnd(Minecraft.getInstance().hasShiftDown());
             return true;
         }
         if (key == InputConstants.KEY_RETURN || key == InputConstants.KEY_NUMPADENTER) {
@@ -248,7 +248,7 @@ public class FormattedStringEditor {
     }
 
     protected Formatting handleFormattingKeys(int key) {
-        if (Screen.hasControlDown() && !Screen.hasShiftDown() && !Screen.hasAltDown()) {
+        if (Minecraft.getInstance().hasControlDown() && !Minecraft.getInstance().hasShiftDown() && !Minecraft.getInstance().hasAltDown()) {
             return switch (key) {
                 case InputConstants.KEY_1 -> Formatting.of(Formatting.Color.BLACK);
                 case InputConstants.KEY_2 -> Formatting.of(Formatting.Color.DARK_BLUE);
@@ -269,7 +269,7 @@ public class FormattedStringEditor {
             };
         }
 
-        if (Screen.hasControlDown() && Screen.hasShiftDown() && !Screen.hasAltDown()) {
+        if (Minecraft.getInstance().hasControlDown() && Minecraft.getInstance().hasShiftDown() && !Minecraft.getInstance().hasAltDown()) {
             return switch (key) {
                 case InputConstants.KEY_1 -> Formatting.of(Formatting.Color.DARK_GRAY);
                 case InputConstants.KEY_2 -> Formatting.of(Formatting.Color.BLUE);

@@ -14,7 +14,7 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import io.github.mortuusars.envelope.world.entity.Pigeon;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public class PigeonModel extends AgeableListModel<Pigeon> {
     private final ModelPart rightWing;
 
     private boolean ghost;
-    private ResourceLocation texture;
+    private Identifier texture;
 
     public PigeonModel(ModelPart root) {
         // bodyYOffset = 24 * (babyBodyScale - 1)

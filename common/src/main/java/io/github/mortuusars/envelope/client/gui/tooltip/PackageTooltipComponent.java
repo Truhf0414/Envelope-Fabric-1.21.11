@@ -5,11 +5,11 @@ import io.github.mortuusars.envelope.world.item.component.PackageContents;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class PackageTooltipComponent implements ClientTooltipComponent {
-    public static final ResourceLocation BACKGROUND_SPRITE = Envelope.resource("tooltip/package/background");
+    public static final Identifier BACKGROUND_SPRITE = Envelope.resource("tooltip/package/background");
     protected static final int BG_WIDTH = 58;
     protected static final int BG_HEIGHT = 40;
 

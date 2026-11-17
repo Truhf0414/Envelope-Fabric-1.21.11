@@ -8,12 +8,12 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 @Environment(EnvType.CLIENT)
 public class CourierBatRenderer extends MobRenderer<CourierBat, CourierBatModel> {
-    private static final ResourceLocation BAT_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/bat.png");
+    private static final Identifier BAT_LOCATION = Identifier.withDefaultNamespace("textures/entity/bat.png");
 
     public CourierBatRenderer(EntityRendererProvider.Context context) {
         super(context, new CourierBatModel(context.bakeLayer(ModelLayers.BAT)), 0.25F);
@@ -21,7 +21,7 @@ public class CourierBatRenderer extends MobRenderer<CourierBat, CourierBatModel>
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(CourierBat entity) {
+    public @NotNull Identifier getTextureLocation(CourierBat entity) {
         return BAT_LOCATION;
     }
 }

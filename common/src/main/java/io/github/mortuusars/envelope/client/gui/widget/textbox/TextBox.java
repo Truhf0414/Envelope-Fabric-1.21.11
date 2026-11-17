@@ -16,7 +16,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
@@ -397,7 +396,7 @@ public class TextBox extends AbstractWidget {
                     getEditor().selectAll();
                 }
             } else {
-                getEditor().setCursorPos(indexAtMousePos, Screen.hasShiftDown());
+                getEditor().setCursorPos(indexAtMousePos, Minecraft.getInstance().hasShiftDown());
             }
 
             refreshDisplayCache();
@@ -446,28 +445,28 @@ public class TextBox extends AbstractWidget {
         int y = cursor.y + (font.lineHeight * yChange);
         int index = getDisplayCache().getCharIndexAtPosition(font, x, y);
 
-        getEditor().setCursorPos(index, Screen.hasShiftDown());
+        getEditor().setCursorPos(index, Minecraft.getInstance().hasShiftDown());
     }
 
     public void keyHome() {
-        if (Screen.hasControlDown()) {
-            getEditor().setCursorToStart(Screen.hasShiftDown());
+        if (Minecraft.getInstance().hasControlDown()) {
+            getEditor().setCursorToStart(Minecraft.getInstance().hasShiftDown());
         } else {
             int cursorPos = getEditor().getCursorPos();
             int lineIndex = getDisplayCache().findLineIndexByCharIndex(cursorPos);
             Line line = getDisplayCache().getLine(lineIndex);
-            getEditor().setCursorPos(line.firstCharIndex(), Screen.hasShiftDown());
+            getEditor().setCursorPos(line.firstCharIndex(), Minecraft.getInstance().hasShiftDown());
         }
     }
 
     public void keyEnd() {
-        if (Screen.hasControlDown()) {
-            getEditor().setCursorToEnd(Screen.hasShiftDown());
+        if (Minecraft.getInstance().hasControlDown()) {
+            getEditor().setCursorToEnd(Minecraft.getInstance().hasShiftDown());
         } else {
             int cursorPos = getEditor().getCursorPos();
             int lineIndex = getDisplayCache().findLineIndexByCharIndex(cursorPos);
             Line line = getDisplayCache().getLine(lineIndex);
-            getEditor().setCursorPos(line.lastCharIndex() + 1, Screen.hasShiftDown());
+            getEditor().setCursorPos(line.lastCharIndex() + 1, Minecraft.getInstance().hasShiftDown());
         }
     }
 

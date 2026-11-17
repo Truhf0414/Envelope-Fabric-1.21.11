@@ -8,14 +8,14 @@ import io.github.mortuusars.envelope.world.inventory.slot.PreviewSlot;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 public class AbstractInHandContainerScreen<T extends AbstractInHandContainerMenu> extends AbstractContainerScreen<T> {
-    private final ResourceLocation texture;
+    private final Identifier texture;
 
-    public AbstractInHandContainerScreen(T menu, Inventory playerInventory, Component title, ResourceLocation texture) {
+    public AbstractInHandContainerScreen(T menu, Inventory playerInventory, Component title, Identifier texture) {
         super(menu, playerInventory, title);
         this.texture = texture;
     }

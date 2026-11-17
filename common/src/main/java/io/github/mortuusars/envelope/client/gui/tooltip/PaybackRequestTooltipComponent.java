@@ -5,15 +5,15 @@ import io.github.mortuusars.envelope.util.Colors;
 import io.github.mortuusars.envelope.world.inventory.StackIngredient;
 import io.github.mortuusars.envelope.world.item.component.PaybackDuration;
 import io.github.mortuusars.envelope.world.item.component.PaybackRequest;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public record PaybackRequestTooltipComponent(PaybackRequest paybackRequest) implements ClientTooltipComponent {
-    public static final ResourceLocation SLOT_SPRITE = Envelope.resource("tooltip/payback/slot");
+    public static final Identifier SLOT_SPRITE = Envelope.resource("tooltip/payback/slot");
 
     private static final ItemStack PAYBACK_TAG_SHORT = Util.make(() -> {
         ItemStack stack = new ItemStack(Envelope.Items.PAYBACK_TAG.get());

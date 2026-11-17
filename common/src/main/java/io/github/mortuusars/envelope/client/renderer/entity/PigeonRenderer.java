@@ -10,7 +10,7 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +25,7 @@ public class PigeonRenderer extends MobRenderer<Pigeon, PigeonModel> {
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(Pigeon entity) {
+    public @NotNull Identifier getTextureLocation(Pigeon entity) {
         return entity.getVariant().value().texture();
     }
 

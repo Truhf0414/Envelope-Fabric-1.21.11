@@ -19,14 +19,14 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class LetterEditScreen extends Screen {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/letter_and_quill.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/letter_and_quill.png");
     public static final WidgetSprites FOLD_BUTTON_SPRITES = Sprites.threeStates(Envelope.resource("letter_and_quill/fold_button"));
 
     protected final ItemAndStack<LetterAndQuillItem> letter;

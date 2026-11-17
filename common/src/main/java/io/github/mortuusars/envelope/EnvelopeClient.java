@@ -13,7 +13,7 @@ import io.github.mortuusars.envelope.lib.mortaar.bugger.screen.BuggerScreen;
 import io.github.mortuusars.envelope.lib.mortaar.client.gui.tooltip.Tooltips;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -41,10 +41,10 @@ public class EnvelopeClient {
     // --
 
     public static class ItemModelOverrides {
-        public static final ResourceLocation OPEN = Envelope.resource("open");
-        public static final ResourceLocation HAS_CONTENT = Envelope.resource("has_content");
+        public static final Identifier OPEN = Envelope.resource("open");
+        public static final Identifier HAS_CONTENT = Envelope.resource("has_content");
 
-        public static final ResourceLocation PAYBACK_TAG_DURATION = Envelope.resource("payback_tag_duration");
+        public static final Identifier PAYBACK_TAG_DURATION = Envelope.resource("payback_tag_duration");
 
         public static void register() {
             ItemProperties.register(Envelope.Items.LETTER_AND_QUILL.get(), HAS_CONTENT, ItemModelOverrides::hasLetterContent);

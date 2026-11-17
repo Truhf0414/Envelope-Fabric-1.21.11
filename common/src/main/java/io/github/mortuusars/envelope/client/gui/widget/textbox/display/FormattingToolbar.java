@@ -11,14 +11,14 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class FormattingToolbar {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/formatting_toolbar.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/formatting_toolbar.png");
 
     public static final Map<Character, String> HOTKEYS = new HashMap<>();
 

@@ -9,12 +9,12 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PigeonHatLayer extends RenderLayer<Pigeon, PigeonModel> {
     public static final ModelLayerLocation MODEL_LAYER = new ModelLayerLocation(Envelope.resource("pigeon_hat"), "main");
 
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/entity/pigeon/misc/pigeon_hat.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/entity/pigeon/misc/pigeon_hat.png");
 
     protected final PigeonModel model;
 

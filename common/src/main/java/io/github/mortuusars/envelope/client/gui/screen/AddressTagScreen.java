@@ -18,7 +18,7 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AddressTagScreen extends Screen {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/address_tag.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/address_tag.png");
 
     public static final WidgetSprites CONFIRM_BUTTON_SPRITES = Sprites.threeStates(Envelope.resource("address_tag/confirm"));
 

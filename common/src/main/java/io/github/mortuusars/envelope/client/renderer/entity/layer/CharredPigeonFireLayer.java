@@ -9,11 +9,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class CharredPigeonFireLayer extends RenderLayer<CharredPigeon, CharredPigeonModel> {
     public static final RenderType RENDER_TYPE = RenderType.eyes(Envelope.resource("textures/entity/charred_pigeon/charred_pigeon_fire.png"));
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/entity/charred_pigeon/charred_pigeon_fire.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/entity/charred_pigeon/charred_pigeon_fire.png");
 
     public CharredPigeonFireLayer(RenderLayerParent<CharredPigeon, CharredPigeonModel> renderer) {
         super(renderer);

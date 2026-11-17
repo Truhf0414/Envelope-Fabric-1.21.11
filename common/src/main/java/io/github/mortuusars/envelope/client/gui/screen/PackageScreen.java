@@ -4,11 +4,11 @@ import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.inventory.PackageMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class PackageScreen extends AbstractInHandContainerScreen<PackageMenu> {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/package.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/package.png");
 
     public PackageScreen(PackageMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, TEXTURE);

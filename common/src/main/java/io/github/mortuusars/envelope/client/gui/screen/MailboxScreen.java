@@ -19,12 +19,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -33,9 +32,10 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.client.Minecraft;
 
 public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
-    public static final ResourceLocation TEXTURE = Envelope.resource("textures/gui/mailbox.png");
+    public static final Identifier TEXTURE = Envelope.resource("textures/gui/mailbox.png");
 
     public static final WidgetSprites ADDRESS_BUTTON_SPRITES = Sprites.normalAndHighlighted(Envelope.resource("mailbox/address_button"));
     public static final WidgetSprites ADDRESS_ATTENTION_BUTTON_SPRITES = Sprites.normalAndHighlighted(Envelope.resource("mailbox/address_attention_button"), Envelope.resource("mailbox/address_button_highlighted"));
@@ -48,8 +48,8 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
 
     public static final WidgetSprites NEW_MAIL_INDICATOR_SPRITES = Sprites.normalOnly(Envelope.resource("mailbox/new_mail_indicator"));
 
-    public static final ResourceLocation SPIDER_WEB_SPRITE = Envelope.resource("mailbox/spider_web");
-    public static final ResourceLocation SPIDER_SPRITE = Envelope.resource("mailbox/spider");
+    public static final Identifier SPIDER_WEB_SPRITE = Envelope.resource("mailbox/spider_web");
+    public static final Identifier SPIDER_SPRITE = Envelope.resource("mailbox/spider");
 
     protected static final int SCROLL_THUMB_TOP_HEIGHT = 3;
     protected static final int SCROLL_THUMB_MID_HEIGHT = 2;
@@ -302,7 +302,7 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
 
         guiGraphics.renderItem(mail, x + 2, y + 1);
 
-        ResourceLocation iconSprite = isHovered ? icon.sprites().enabledFocused() : icon.sprites().enabled();
+        Identifier iconSprite = isHovered ? icon.sprites().enabledFocused() : icon.sprites().enabled();
         guiGraphics.blitSprite(iconSprite, x + 23, y + 4, 0, 10, 10);
 
         if (!icon.icon().isEmpty()) {
@@ -448,8 +448,8 @@ public class MailboxScreen extends AbstractContainerScreen<MailboxMenu> {
             if (index == -1) return false;
 
             MailboxMenu.MailAction action = MailboxMenu.MailAction.PICK_UP;
-            if (Screen.hasShiftDown()) {
-                if (Screen.hasControlDown()) {
+            if (Minecraft.getInstance().hasShiftDown()) {
+                if (Minecraft.getInstance().hasControlDown()) {
                     action = MailboxMenu.MailAction.MOVE_ALL_TO_INVENTORY;
                 } else {
                     action = MailboxMenu.MailAction.MOVE_TO_INVENTORY;
