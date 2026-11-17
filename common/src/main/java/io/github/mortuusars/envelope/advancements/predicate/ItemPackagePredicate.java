@@ -24,7 +24,7 @@ public record ItemPackagePredicate(Optional<CollectionPredicate<ItemStack, ItemP
         return Envelope.DataComponents.PACKAGE_CONTENTS;
     }
 
-    public boolean matches(ItemStack stack, PackageContents contents) {
+    public boolean matches(PackageContents contents) { // 1.21.11: single-argument form
         return this.items.isEmpty() || this.items.get().test(contents.getItems());
     }
 }

@@ -30,6 +30,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
@@ -37,12 +38,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface Registrar {
     String getModId();
 
-    <T extends Block> Supplier<T> block(String id, Supplier<T> supplier);
+    /**
+     * 1.21.11 (since 1.21.2): block properties must carry their registry id before the block is constructed.
+     * The registrar sets the id, mirroring vanilla {@code Blocks#register}.
+     */
+    <T extends Block> Supplier<T> block(String id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties);
 
     <T extends BlockEntityType<E>, E extends BlockEntity> Supplier<T> blockEntityType(String id, Supplier<T> sup);
 
@@ -50,7 +56,11 @@ public interface Registrar {
 
     Supplier<PoiType> poiType(ResourceKey<PoiType> key, int ticketCount, int searchDistance, Supplier<Set<BlockState>> states);
 
-    <T extends Item> Supplier<T> item(String id, Supplier<T> supplier);
+    /**
+     * 1.21.11 (since 1.21.2): item properties must carry their registry id before the item is constructed.
+     * The registrar sets the id, mirroring vanilla {@code Items#registerItem}.
+     */
+    <T extends Item> Supplier<T> item(String id, Function<Item.Properties, T> factory, Item.Properties properties);
 
     <T extends CreativeModeTab> Supplier<T> creativeTab(String id, Supplier<T> supplier);
 

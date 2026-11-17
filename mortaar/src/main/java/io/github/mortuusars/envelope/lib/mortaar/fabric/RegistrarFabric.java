@@ -30,6 +30,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
@@ -59,8 +61,9 @@ public class RegistrarFabric implements Registrar {
         return modId;
     }
 
-    public <T extends Block> Supplier<T> block(String id, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.BLOCK, Identifier.fromNamespaceAndPath(modId, id), supplier.get());
+    public <T extends Block> Supplier<T> block(String id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties) {
+        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(modId, id));
+        T obj = Registry.register(BuiltInRegistries.BLOCK, key, factory.apply(properties.setId(key)));
         return () -> obj;
     }
 
@@ -83,8 +86,13 @@ public class RegistrarFabric implements Registrar {
     }
 
     @Override
-    public <T extends Item> Supplier<T> item(String id, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(modId, id), supplier.get());
+    public <T extends Item> Supplier<T> item(String id, Function<Item.Properties, T> factory, Item.Properties properties) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(modId, id));
+        T obj = factory.apply(properties.setId(key));
+        if (obj instanceof BlockItem blockItem) {
+            blockItem.registerBlocks(Item.BY_BLOCK, obj); // same as vanilla Items#registerItem
+        }
+        Registry.register(BuiltInRegistries.ITEM, key, obj);
         return () -> obj;
     }
 

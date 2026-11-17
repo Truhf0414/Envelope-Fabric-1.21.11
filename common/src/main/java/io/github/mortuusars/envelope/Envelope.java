@@ -51,7 +51,7 @@ import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import io.github.mortuusars.envelope.lib.mortaar.bugger.data.EntityData;
 import io.github.mortuusars.envelope.lib.mortaar.bugger.data.OptionalEntityData;
 import io.github.mortuusars.envelope.lib.mortaar.util.DeferredSoundType;
-import net.minecraft.advancements.criterion.ItemSubPredicate;
+import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.advancements.criterion.PlayerTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
@@ -175,70 +175,61 @@ public class Envelope {
         public static final Supplier<PigeonholeBlock> CRIMSON_PIGEONHOLE = pigeonhole("crimson", net.minecraft.world.level.block.Blocks.CRIMSON_PLANKS.defaultMapColor());
         public static final Supplier<PigeonholeBlock> WARPED_PIGEONHOLE = pigeonhole("warped", net.minecraft.world.level.block.Blocks.WARPED_PLANKS.defaultMapColor());
 
-        public static final Supplier<MailboxBlock> MAILBOX = REGISTRAR.block("mailbox",
-              () -> new MailboxBlock(BlockBehaviour.Properties.of()
+        public static final Supplier<MailboxBlock> MAILBOX = REGISTRAR.block("mailbox", MailboxBlock::new, BlockBehaviour.Properties.of()
                     .strength(4f)
                     .sound(SoundType.WOOD)
-                    .mapColor(MapColor.WOOD)));
+                    .mapColor(MapColor.WOOD));
 
-        public static final Supplier<PaperBoxBlock> PAPER_BOX = REGISTRAR.block("paper_box",
-              () -> new PaperBoxBlock(BlockBehaviour.Properties.of()
+        public static final Supplier<PaperBoxBlock> PAPER_BOX = REGISTRAR.block("paper_box", PaperBoxBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .ignitedByLava()
                     .strength(0.3f)
                     .sound(SoundTypes.PAPER)
-                    .mapColor(MapColor.SAND)
-              ));
+                    .mapColor(MapColor.SAND));
 
-        public static final Supplier<PackageBlock> PACKAGE = REGISTRAR.block("package",
-              () -> new PackageBlock(BlockBehaviour.Properties.of()
+        public static final Supplier<PackageBlock> PACKAGE = REGISTRAR.block("package", PackageBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .ignitedByLava()
                     .strength(0.4f)
                     .sound(SoundTypes.PAPER)
                     .mapColor(MapColor.SAND)
-                    .noOcclusion()));
+                    .noOcclusion());
 
-        public static final Supplier<PackageBlock> SEALED_PACKAGE = REGISTRAR.block("sealed_package",
-              () -> new PackageBlock(BlockBehaviour.Properties.of()
+        public static final Supplier<PackageBlock> SEALED_PACKAGE = REGISTRAR.block("sealed_package", PackageBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .ignitedByLava()
                     .strength(0.4f)
                     .sound(SoundTypes.PAPER)
                     .mapColor(MapColor.SAND)
-                    .noOcclusion()));
+                    .noOcclusion());
 
-        public static final Supplier<LetterBlock> LETTER = REGISTRAR.block("letter",
-              () -> new LetterBlock(BlockBehaviour.Properties.of()
+        public static final Supplier<LetterBlock> LETTER = REGISTRAR.block("letter", LetterBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .sound(SoundTypes.PAPER)
                     .ignitedByLava()
                     .instabreak()
-                    .noCollission()
-                    .noOcclusion()));
-        public static final Supplier<LetterBlock> TATTERED_LETTER = REGISTRAR.block("tattered_letter",
-              () -> new LetterBlock(BlockBehaviour.Properties.of()
+                    .noCollision()
+                    .noOcclusion());
+        public static final Supplier<LetterBlock> TATTERED_LETTER = REGISTRAR.block("tattered_letter", LetterBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .sound(SoundTypes.PAPER)
                     .ignitedByLava()
                     .instabreak()
-                    .noCollission()
-                    .noOcclusion()));
-        public static final Supplier<LetterBlock> SERVICE_LETTER = REGISTRAR.block("service_letter",
-              () -> new LetterBlock(BlockBehaviour.Properties.of()
+                    .noCollision()
+                    .noOcclusion());
+        public static final Supplier<LetterBlock> SERVICE_LETTER = REGISTRAR.block("service_letter", LetterBlock::new, BlockBehaviour.Properties.of()
                     .pushReaction(PushReaction.DESTROY)
                     .sound(SoundTypes.PAPER)
                     .ignitedByLava()
                     .instabreak()
-                    .noCollission()
-                    .noOcclusion()));
+                    .noCollision()
+                    .noOcclusion());
 
         private static Supplier<PigeonholeBlock> pigeonhole(String type, MapColor color) {
             String id = type + "_pigeonhole";
-            Supplier<PigeonholeBlock> block = REGISTRAR.block(id,
-                  () -> new PigeonholeBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.BEEHIVE)
+            Supplier<PigeonholeBlock> block = REGISTRAR.block(id, PigeonholeBlock::new, BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.BEEHIVE)
                         .strength(2f)
-                        .mapColor(color)));
+                        .mapColor(color));
             PIGEONHOLES.put(Envelope.resource(id), block);
             return block;
         }
@@ -312,53 +303,37 @@ public class Envelope {
         public static final Supplier<BlockItem> WARPED_PIGEONHOLE = pigeonhole("warped", Blocks.WARPED_PIGEONHOLE);
 
         private static Supplier<BlockItem> pigeonhole(String type, Supplier<PigeonholeBlock> block) {
-            Supplier<BlockItem> item = REGISTRAR.item(type + "_pigeonhole", () -> new BlockItem(block.get(), new Item.Properties()));
+            Supplier<BlockItem> item = REGISTRAR.item(type + "_pigeonhole", p -> new BlockItem(block.get(), p), new Item.Properties().useBlockDescriptionPrefix());
             PIGEONHOLES.add(item);
             return item;
         }
 
         // --
 
-        public static final Supplier<MailboxBlockItem> MAILBOX = REGISTRAR.item("mailbox",
-              () -> new MailboxBlockItem(Blocks.MAILBOX.get(), new Item.Properties()));
+        public static final Supplier<MailboxBlockItem> MAILBOX = REGISTRAR.item("mailbox", p -> new MailboxBlockItem(Blocks.MAILBOX.get(), p), new Item.Properties().useBlockDescriptionPrefix());
 
-        public static final Supplier<LetterAndQuillItem> LETTER_AND_QUILL = REGISTRAR.item("letter_and_quill",
-              () -> new LetterAndQuillItem(new Item.Properties().stacksTo(1)));
+        public static final Supplier<LetterAndQuillItem> LETTER_AND_QUILL = REGISTRAR.item("letter_and_quill", LetterAndQuillItem::new, new Item.Properties().stacksTo(1));
 
-        public static final Supplier<LetterItem> LETTER = REGISTRAR.item("letter",
-              () -> new LetterItem(Blocks.LETTER.get(), new Item.Properties()));
-        public static final Supplier<LetterItem> TATTERED_LETTER = REGISTRAR.item("tattered_letter",
-              () -> new TatteredLetterItem(Blocks.TATTERED_LETTER.get(), new Item.Properties()));
-        public static final Supplier<ServiceLetterItem> SERVICE_LETTER = REGISTRAR.item("service_letter",
-              () -> new ServiceLetterItem(Blocks.SERVICE_LETTER.get(), new Item.Properties()));
+        public static final Supplier<LetterItem> LETTER = REGISTRAR.item("letter", p -> new LetterItem(Blocks.LETTER.get(), p), new Item.Properties().useBlockDescriptionPrefix());
+        public static final Supplier<LetterItem> TATTERED_LETTER = REGISTRAR.item("tattered_letter", p -> new TatteredLetterItem(Blocks.TATTERED_LETTER.get(), p), new Item.Properties().useBlockDescriptionPrefix());
+        public static final Supplier<ServiceLetterItem> SERVICE_LETTER = REGISTRAR.item("service_letter", p -> new ServiceLetterItem(Blocks.SERVICE_LETTER.get(), p), new Item.Properties().useBlockDescriptionPrefix());
 
-        public static final Supplier<SealedLetterItem> SEALED_LETTER = REGISTRAR.item("sealed_letter",
-              () -> new SealedLetterItem(LETTER, new Item.Properties()));
-        public static final Supplier<SealedLetterItem> SEALED_TATTERED_LETTER = REGISTRAR.item("sealed_tattered_letter",
-              () -> new SealedLetterItem(TATTERED_LETTER, new Item.Properties()));
-        public static final Supplier<SealedServiceLetterItem> SEALED_SERVICE_LETTER = REGISTRAR.item("sealed_service_letter",
-              () -> new SealedServiceLetterItem(SERVICE_LETTER, new Item.Properties()));
+        public static final Supplier<SealedLetterItem> SEALED_LETTER = REGISTRAR.item("sealed_letter", p -> new SealedLetterItem(LETTER, p), new Item.Properties());
+        public static final Supplier<SealedLetterItem> SEALED_TATTERED_LETTER = REGISTRAR.item("sealed_tattered_letter", p -> new SealedLetterItem(TATTERED_LETTER, p), new Item.Properties());
+        public static final Supplier<SealedServiceLetterItem> SEALED_SERVICE_LETTER = REGISTRAR.item("sealed_service_letter", p -> new SealedServiceLetterItem(SERVICE_LETTER, p), new Item.Properties());
 
-        public static final Supplier<PaperBoxItem> PAPER_BOX = REGISTRAR.item("paper_box",
-              () -> new PaperBoxItem(Blocks.PAPER_BOX.get(), new Item.Properties().stacksTo(16)));
-        public static final Supplier<PackageItem> PACKAGE = REGISTRAR.item("package",
-              () -> new PackageItem(Blocks.PACKAGE.get(), new Item.Properties().stacksTo(1)));
-        public static final Supplier<SealedPackageItem> SEALED_PACKAGE = REGISTRAR.item("sealed_package",
-              () -> new SealedPackageItem(Blocks.SEALED_PACKAGE.get(), new Item.Properties().stacksTo(1)));
+        public static final Supplier<PaperBoxItem> PAPER_BOX = REGISTRAR.item("paper_box", p -> new PaperBoxItem(Blocks.PAPER_BOX.get(), p), new Item.Properties().stacksTo(16).useBlockDescriptionPrefix());
+        public static final Supplier<PackageItem> PACKAGE = REGISTRAR.item("package", p -> new PackageItem(Blocks.PACKAGE.get(), p), new Item.Properties().stacksTo(1).useBlockDescriptionPrefix());
+        public static final Supplier<SealedPackageItem> SEALED_PACKAGE = REGISTRAR.item("sealed_package", p -> new SealedPackageItem(Blocks.SEALED_PACKAGE.get(), p), new Item.Properties().stacksTo(1).useBlockDescriptionPrefix());
 
-        public static final Supplier<PaybackTagItem> PAYBACK_TAG = REGISTRAR.item("payback_tag",
-              () -> new PaybackTagItem(new Item.Properties()));
-        public static final Supplier<PaybackBoxItem> PAYBACK_BOX = REGISTRAR.item("payback_box",
-              () -> new PaybackBoxItem(new Item.Properties().stacksTo(1)));
-        public static final Supplier<PaybackPackageItem> PAYBACK_PACKAGE = REGISTRAR.item("payback_package",
-              () -> new PaybackPackageItem(new Item.Properties().stacksTo(1)));
+        public static final Supplier<PaybackTagItem> PAYBACK_TAG = REGISTRAR.item("payback_tag", PaybackTagItem::new, new Item.Properties());
+        public static final Supplier<PaybackBoxItem> PAYBACK_BOX = REGISTRAR.item("payback_box", PaybackBoxItem::new, new Item.Properties().stacksTo(1));
+        public static final Supplier<PaybackPackageItem> PAYBACK_PACKAGE = REGISTRAR.item("payback_package", PaybackPackageItem::new, new Item.Properties().stacksTo(1));
 
-        public static final Supplier<AddressTagItem> ADDRESS_TAG = REGISTRAR.item("address_tag",
-              () -> new AddressTagItem(new Item.Properties()));
+        public static final Supplier<AddressTagItem> ADDRESS_TAG = REGISTRAR.item("address_tag", AddressTagItem::new, new Item.Properties());
 
         public static final Map<DyeColor, Supplier<SealStampItem>> DYED_SEAL_STAMPS = new LinkedHashMap<>();
-        public static final Supplier<SealStampItem> SEAL_STAMP = REGISTRAR.item("seal_stamp",
-              () -> new SealStampItem(stampProperties(SealMaterial.WAX)));
+        public static final Supplier<SealStampItem> SEAL_STAMP = REGISTRAR.item("seal_stamp", SealStampItem::new, stampProperties(SealMaterial.WAX));
         public static final Supplier<SealStampItem> WHITE_SEAL_STAMP = dyedStamp(DyeColor.WHITE);
         public static final Supplier<SealStampItem> LIGHT_GRAY_SEAL_STAMP = dyedStamp(DyeColor.LIGHT_GRAY);
         public static final Supplier<SealStampItem> GRAY_SEAL_STAMP = dyedStamp(DyeColor.GRAY);
@@ -375,16 +350,14 @@ public class Envelope {
         public static final Supplier<SealStampItem> PURPLE_SEAL_STAMP = dyedStamp(DyeColor.PURPLE);
         public static final Supplier<SealStampItem> MAGENTA_SEAL_STAMP = dyedStamp(DyeColor.MAGENTA);
         public static final Supplier<SealStampItem> PINK_SEAL_STAMP = dyedStamp(DyeColor.PINK);
-        public static final Supplier<SoulboundSealStampItem> SOULBOUND_SEAL_STAMP = REGISTRAR.item("soulbound_seal_stamp",
-              () -> new SoulboundSealStampItem(new Item.Properties().durability(8).stacksTo(1)));
+        public static final Supplier<SoulboundSealStampItem> SOULBOUND_SEAL_STAMP = REGISTRAR.item("soulbound_seal_stamp", SoulboundSealStampItem::new, new Item.Properties().durability(8).stacksTo(1));
 
         private static Supplier<SealStampItem> dyedStamp(DyeColor color) {
             @Nullable ResourceKey<SealMaterial> materialKey = SealMaterial.fromDyeColor(color);
             Preconditions.checkNotNull(materialKey,
                   "Dye color '" + color + "' doesn't have a corresponding material, or it wasn't added to SealMaterial#WAX_COLORS map.");
 
-            Supplier<SealStampItem> item = REGISTRAR.item(color.getSerializedName() + "_seal_stamp",
-                  () -> new SealStampItem(stampProperties(materialKey)));
+            Supplier<SealStampItem> item = REGISTRAR.item(color.getSerializedName() + "_seal_stamp", SealStampItem::new, stampProperties(materialKey));
             DYED_SEAL_STAMPS.put(color, item);
             return item;
         }
@@ -397,10 +370,10 @@ public class Envelope {
 
         // --
 
-        public static final Supplier<SpawnEggItem> PIGEON_SPAWN_EGG = REGISTRAR.item("pigeon_spawn_egg",
-              () -> new SpawnEggItem(EntityTypes.PIGEON.get(), 0x676781, 0xB8B8CB, new Item.Properties()));
-        public static final Supplier<SpawnEggItem> CHARRED_PIGEON_SPAWN_EGG = REGISTRAR.item("charred_pigeon_spawn_egg",
-              () -> new SpawnEggItem(EntityTypes.CHARRED_PIGEON.get(), 0x2B2223, 0xE85F00, new Item.Properties()));
+        public static final Supplier<SpawnEggItem> PIGEON_SPAWN_EGG = // 1.21.11: spawn eggs no longer take tint colors (upstream: 0x676781 / 0xB8B8CB); they use their own item texture
+              REGISTRAR.item("pigeon_spawn_egg", SpawnEggItem::new, new Item.Properties().spawnEgg(EntityTypes.PIGEON.get()));
+        public static final Supplier<SpawnEggItem> CHARRED_PIGEON_SPAWN_EGG = // upstream colors: 0x2B2223 / 0xE85F00
+              REGISTRAR.item("charred_pigeon_spawn_egg", SpawnEggItem::new, new Item.Properties().spawnEgg(EntityTypes.CHARRED_PIGEON.get()));
 
         static void init() {
         }
@@ -702,11 +675,12 @@ public class Envelope {
         }
     }
 
+    // 1.21.11: these are DataComponentPredicate types now (ItemSubPredicate was removed); class name kept from upstream.
     public static class ItemSubPredicates {
-        public static Supplier<ItemSubPredicate.Type<ItemPackagePredicate>> PACKAGE_CONTENTS = REGISTRAR.itemSubPredicate("package_contents",
-              () -> new ItemSubPredicate.Type<>(ItemPackagePredicate.CODEC));
-        public static Supplier<ItemSubPredicate.Type<ItemOccludingBlockPredicate>> OCCLUDING_BLOCK = REGISTRAR.itemSubPredicate("occluding_block",
-              () -> new ItemSubPredicate.Type<>(ItemOccludingBlockPredicate.CODEC));
+        public static Supplier<DataComponentPredicate.Type<ItemPackagePredicate>> PACKAGE_CONTENTS = REGISTRAR.dataComponentPredicate("package_contents",
+              () -> new DataComponentPredicate.ConcreteType<>(ItemPackagePredicate.CODEC));
+        public static Supplier<DataComponentPredicate.Type<ItemOccludingBlockPredicate>> OCCLUDING_BLOCK = REGISTRAR.dataComponentPredicate("occluding_block",
+              () -> new DataComponentPredicate.ConcreteType<>(ItemOccludingBlockPredicate.CODEC));
 
         public static void init() {
         }
