@@ -138,7 +138,7 @@ public final class SealMaterial {
     }
 
     public static Identifier spriteLocationFromKey(ResourceKey<SealMaterial> key) {
-        return key.location().withPath(path -> "seal/material/" + path);
+        return key.identifier().withPath(path -> "seal/material/" + path);
     }
 
     public static void bootstrap(BootstrapContext<SealMaterial> context) {

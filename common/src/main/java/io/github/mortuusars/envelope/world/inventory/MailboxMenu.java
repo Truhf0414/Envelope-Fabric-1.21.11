@@ -87,7 +87,7 @@ public class MailboxMenu extends AbstractContainerMenu {
     public static MailboxMenu fromNetwork(int id, Inventory inventory, RegistryFriendlyByteBuf buffer) {
         BlockPos mailboxPos = buffer.readBlockPos();
         BlockAddress address = BlockAddress.STREAM_CODEC.decode(buffer);
-        List<ItemStack> mail = ItemStack.LIST_STREAM_CODEC.decode(buffer);
+        List<ItemStack> mail = ItemStack.OPTIONAL_LIST_STREAM_CODEC.decode(buffer);
         return new MailboxMenu(id, inventory, mailboxPos, address, mail);
     }
 
@@ -114,7 +114,7 @@ public class MailboxMenu extends AbstractContainerMenu {
 
     public boolean hasDefaultAddress() {
         if (player instanceof ServerPlayer serverPlayer) {
-            return serverPlayer.serverLevel().getEnvelopeMailService().getKnownPlayers()
+            return serverPlayer.level().getEnvelopeMailService().getKnownPlayers()
                   .getDefaultAddressOf(player)
                   .isPresent();
         }
@@ -129,7 +129,7 @@ public class MailboxMenu extends AbstractContainerMenu {
 
     public boolean isDefaultAddress() {
         if (player instanceof ServerPlayer serverPlayer) {
-            return serverPlayer.serverLevel().getEnvelopeMailService().getKnownPlayers()
+            return serverPlayer.level().getEnvelopeMailService().getKnownPlayers()
                   .getDefaultAddressOf(player)
                   .map(address::equals)
                   .orElse(false);
@@ -286,7 +286,7 @@ public class MailboxMenu extends AbstractContainerMenu {
     @Override
     public boolean clickMenuButton(Player player, int id) {
         if (id == ADDRESS_BUTTON_ID && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.serverLevel().getEnvelopeMailService().getKnownPlayers().setDefaultAddress(player, address);
+            serverPlayer.level().getEnvelopeMailService().getKnownPlayers().setDefaultAddress(player, address);
             updateHasDefault();
             updateIsDefault();
             return true;

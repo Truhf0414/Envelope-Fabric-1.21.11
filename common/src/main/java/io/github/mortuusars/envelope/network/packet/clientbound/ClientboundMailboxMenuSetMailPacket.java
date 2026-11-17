@@ -19,7 +19,7 @@ public record ClientboundMailboxMenuSetMailPacket(List<ItemStack> mail) implemen
     public static final Type<ClientboundMailboxMenuSetMailPacket> TYPE = new Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundMailboxMenuSetMailPacket> STREAM_CODEC = StreamCodec.composite(
-            ItemStack.LIST_STREAM_CODEC, ClientboundMailboxMenuSetMailPacket::mail,
+            ItemStack.OPTIONAL_LIST_STREAM_CODEC, ClientboundMailboxMenuSetMailPacket::mail,
             ClientboundMailboxMenuSetMailPacket::new
     );
 

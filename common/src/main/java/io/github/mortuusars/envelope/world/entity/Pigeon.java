@@ -154,7 +154,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     // -- Spawn
 
     public static boolean checkSpawnRules(EntityType<Pigeon> pigeon, LevelAccessor level,
-                                          MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+                                          EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
         return Config.Server.PIGEON_SPAWNS_NATURALLY.get()
               && level.getBlockState(pos.below()).is(Envelope.Tags.Blocks.PIGEONS_SPAWNABLE_ON)
               && isBrightEnoughToSpawn(level, pos);
@@ -171,7 +171,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     public static void trySpawnGhost(ServerLevel level, ZombieVillager zombieVillager) {
         RandomSource random = level.getRandom();
         if (random.nextDouble() >= Config.Server.PIGEON_GHOST_CHANCE.get()
-              || level.isDay()
+              || level.isBrightOutside()
               || level.getMoonBrightness() <= 0.9F) {
             return;
         }
@@ -184,7 +184,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
         if (level.isLoaded(spawnPos)
               && Math.abs(zombieVillager.getBlockY() - spawnPos.getY()) <= 16 // Not too far
               && SpawnPlacements.isSpawnPositionOk(Envelope.EntityTypes.PIGEON.get(), level, spawnPos)
-              && Envelope.EntityTypes.PIGEON.get().spawn(level, spawnPos, MobSpawnType.REINFORCEMENT) instanceof Pigeon pigeon) {
+              && Envelope.EntityTypes.PIGEON.get().spawn(level, spawnPos, EntitySpawnReason.REINFORCEMENT) instanceof Pigeon pigeon) {
             PigeonVariant.get(level.registryAccess(), PigeonVariant.GHOST)
                   .ifPresent(pigeon::setVariant);
             Vec3 pos = pigeon.position();
@@ -198,7 +198,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
 
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                 MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
+                                                 EntitySpawnReason spawnType, @Nullable SpawnGroupData spawnGroupData) {
         setVariant(PigeonVariant.getRandomSpawnVariant(level.registryAccess(), level.getRandom(), level.getBiome(blockPosition())));
         getPigeonholeHandler().setRandomWantCooldownUpToDefault(level.getRandom());
         return super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
@@ -727,7 +727,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
 
     @Override
     public boolean canStartDelivery() {
-        return !isLeashed() && !isTired() && level().isDay() && !level().isRaining() && !level().isThundering();
+        return !isLeashed() && !isTired() && level().isBrightOutside() && !level().isRaining() && !level().isThundering();
     }
 
     @Override

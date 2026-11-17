@@ -50,7 +50,7 @@ public class EquineAssuranceBureau {
             return;
         }
 
-        Optional<RecipeHolder<MailRecipe>> recipe = Mailing.getAllRecipesOf(bureauAddress.get(), player.serverLevel())
+        Optional<RecipeHolder<MailRecipe>> recipe = Mailing.getAllRecipesOf(bureauAddress.get(), player.level())
               .filter(recipeHolder -> recipeHolder.id().equals(RECIPE_ID))
               .findFirst();
         if (recipe.isEmpty()) {
@@ -61,7 +61,7 @@ public class EquineAssuranceBureau {
             return; // 1 in 5 chance of sending for animals other than horses.
         }
 
-        MailService service = MailService.of(player.serverLevel());
+        MailService service = MailService.of(player.level());
 
         PlayerAddress playerAddress = new PlayerAddress(player);
         Optional<BlockAddress> defaultAddress = service.getPlayerDefaultAddress(playerAddress);
@@ -82,7 +82,7 @@ public class EquineAssuranceBureau {
         double chance = Math.max(0.02, 1.0 / (1 + ((sentNoticesCount + deliveriesCount) * 2)));
 
         if (service.getLevel().getRandom().nextDouble() < chance
-              && sendLetter(player.serverLevel(), playerAddress)) {
+              && sendLetter(player.level(), playerAddress)) {
             playerData.putInt(DATA_SENT_NOTICES_COUNT, sentNoticesCount + 1);
             playerData.putLong(DATA_LAST_SEND_TIME, service.getGameTime());
             data.put(player.getScoreboardName(), playerData);

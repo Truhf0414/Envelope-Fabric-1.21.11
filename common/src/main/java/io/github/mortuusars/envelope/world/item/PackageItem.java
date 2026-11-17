@@ -34,8 +34,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 import java.util.Optional;
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.List;
 
 public class PackageItem extends BlockItem implements SealableItem {
     public PackageItem(Block block, Properties properties) {
@@ -53,23 +55,23 @@ public class PackageItem extends BlockItem implements SealableItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> components, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, components, tooltipFlag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> components, TooltipFlag tooltipFlag) { // 1.21.11: Consumer + TooltipDisplay
+        super.appendHoverText(stack, context, tooltipDisplay, components, tooltipFlag);
 
         @Nullable SeededContainerLoot loot = stack.get(DataComponents.CONTAINER_LOOT);
         if (loot != null) {
-            components.add(Component.translatable("container.envelope.package.contents_unknown").withStyle(ChatFormatting.GRAY));
+            components.accept(Component.translatable("container.envelope.package.contents_unknown").withStyle(ChatFormatting.GRAY));
 
             if (tooltipFlag.isAdvanced()) {
-                components.add(Component.literal("Loot Table: ").withStyle(ChatFormatting.DARK_GRAY)
-                      .append(Component.literal(loot.lootTable().location().toString()).withStyle(ChatFormatting.DARK_GRAY)));
+                components.accept(Component.literal("Loot Table: ").withStyle(ChatFormatting.DARK_GRAY)
+                      .append(Component.literal(loot.lootTable().identifier().toString()).withStyle(ChatFormatting.DARK_GRAY)));
             }
         }
 
         if (tooltipFlag.isAdvanced()) {
             int xp = stack.getOrDefault(Envelope.DataComponents.PACKAGE_EXPERIENCE, 0);
             if (xp > 0) {
-                components.add(Component.literal("Experience: " + xp).withStyle(ChatFormatting.DARK_GRAY));
+                components.accept(Component.literal("Experience: " + xp).withStyle(ChatFormatting.DARK_GRAY));
             }
         }
     }
@@ -93,7 +95,7 @@ public class PackageItem extends BlockItem implements SealableItem {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         if (Config.Server.PACKAGE_SNEAK_QUICK_UNPACK.get() && player.isSecondaryUseActive()) {
@@ -116,7 +118,7 @@ public class PackageItem extends BlockItem implements SealableItem {
         }
 
         player.level().playSound(player, player, Envelope.SoundEvents.PAPER_TEAR.get(), SoundSource.PLAYERS, 0.6f, 0.95f);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     protected void unpackLootTableIfPresent(ItemStack stack, Level level, Vec3 pos, @Nullable Player player) {

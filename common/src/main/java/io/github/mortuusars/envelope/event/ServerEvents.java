@@ -6,7 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 
 public class ServerEvents {
     public static void serverStarted(MinecraftServer server) {
@@ -16,12 +16,12 @@ public class ServerEvents {
     }
 
     public static void playerLogin(ServerPlayer player) {
-        player.serverLevel().getEnvelopeMailService().getKnownPlayers().add(player);
+        player.level().getEnvelopeMailService().getKnownPlayers().add(player);
         SealLocks.get(player.level()).syncToClient(player);
     }
 
     public static void playerCopy(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
-        if (!alive && !oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
+        if (!alive && !oldPlayer.level().getGameRules().get(GameRules.KEEP_INVENTORY)) {
             transferKeptItems(oldPlayer, newPlayer);
         }
     }

@@ -116,7 +116,7 @@ public final class SealSymbol {
 
     public static void bootstrap(BootstrapContext<SealSymbol> context) {
         Function<ResourceKey<SealSymbol>, Identifier> keyToTexture = key ->
-              key.location().withPath(path -> "seal/symbol/" + path);
+              key.identifier().withPath(path -> "seal/symbol/" + path);
 
         NUMBERS.values().forEach(key -> context.register(key, new SealSymbol(keyToTexture.apply(key))));
         LETTERS.values().forEach(key -> context.register(key, new SealSymbol(keyToTexture.apply(key))));

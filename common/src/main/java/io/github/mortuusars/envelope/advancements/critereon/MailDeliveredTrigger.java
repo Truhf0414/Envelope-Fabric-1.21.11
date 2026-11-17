@@ -33,7 +33,7 @@ public class MailDeliveredTrigger extends SimpleCriterionTrigger<MailDeliveredTr
 
         public boolean matches(ServerPlayer player,
                                Delivery delivery) {
-            return (this.delivery.isEmpty() || this.delivery.get().matches(player.serverLevel(), delivery));
+            return (this.delivery.isEmpty() || this.delivery.get().matches(player.level(), delivery));
         }
     }
 }

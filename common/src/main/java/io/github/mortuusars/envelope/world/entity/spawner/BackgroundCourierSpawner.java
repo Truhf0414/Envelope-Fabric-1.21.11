@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -37,7 +37,7 @@ public class BackgroundCourierSpawner extends Spawner {
     @Override
     public void spawn(ServerLevel level) {
         if (!Config.Server.DELIVERY_SPAWNING_IGNORES_DOMOBSPAWNING_RULE.get()
-              && !level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+              && !level.getGameRules().get(GameRules.SPAWN_MOBS)) {
             return;
         }
 
@@ -96,7 +96,7 @@ public class BackgroundCourierSpawner extends Spawner {
                       return;
                   }
 
-                  entity.moveTo(pos, entity.getYRot(), entity.getXRot());
+                  entity.snapTo(pos, entity.getYRot(), entity.getXRot());
                   level.addFreshEntityWithPassengers(entity);
 
                   if (entity instanceof PhysicalCourier courier) {

@@ -81,13 +81,13 @@ public class CharredPigeon extends Monster implements Enemy {
     // -- Spawn
 
     public static boolean checkSpawnRules(EntityType<CharredPigeon> pigeon, LevelAccessor level,
-                                          MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+                                          EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
         return Config.Server.CHARRED_PIGEON_SPAWNS_NATURALLY.get();
     }
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                  MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
+                                                  EntitySpawnReason spawnType, @Nullable SpawnGroupData spawnGroupData) {
         if (level.getRandom().nextDouble() < Config.Server.CHARRED_PIGEON_MAIL_CHANCE.get()) {
             LootTable table = level.getLevel().getServer().reloadableRegistries().getLootTable(Envelope.LootTables.CHARRED_PIGEON_MAIL);
             if (table != LootTable.EMPTY) {

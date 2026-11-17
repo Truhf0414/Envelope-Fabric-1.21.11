@@ -34,15 +34,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -54,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import net.minecraft.world.entity.ConversionParams;
 
 public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbox, WorldlyContainer {
     public static final int REGULAR_SLOTS = 3;
@@ -246,7 +246,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
     public boolean isAvailableForPickup() {
         if (level == null) return false;
         return getBlockState().getValue(MailboxBlock.OPEN);
-        // isSendable(getItem(SLOT_MAIL)) && !(level.isDay() ? getPigeonFoodItem() : getBatFoodItem()).isEmpty();
+        // isSendable(getItem(SLOT_MAIL)) && !(level.isBrightOutside() ? getPigeonFoodItem() : getBatFoodItem()).isEmpty();
     }
 
     @Override
@@ -264,7 +264,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
             Platform.openMenu(serverPlayer, this, buffer -> {
                 buffer.writeBlockPos(getBlockPos());
                 BlockAddress.STREAM_CODEC.encode(buffer, getAddress());
-                ItemStack.LIST_STREAM_CODEC.encode(buffer, getAllMail());
+                ItemStack.OPTIONAL_LIST_STREAM_CODEC.encode(buffer, getAllMail());
             });
             playSound(Envelope.SoundEvents.MAILBOX_OPEN.get(), 0.6f, 1.1f);
         }
@@ -300,7 +300,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
                     .owner(getOwner()));
 
         removeItem(SLOT_MAIL, 1);
-        removeItem(level.isDay() ? SLOT_PIGEON_FOOD : SLOT_BAT_FOOD, 1);
+        removeItem(level.isBrightOutside() ? SLOT_PIGEON_FOOD : SLOT_BAT_FOOD, 1);
 
         Vec3 pos = courier.asEntity().position();
         level.sendParticles(ParticleTypes.CLOUD, pos.x, pos.y, pos.z, 10, 0.3, 0.3, 0.3, 0.02);
@@ -406,7 +406,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
         batEmployCooldown--;
 
         if (batEmployCooldown > 0
-              || !level.isNight()
+              || !level.isDarkOutside()
               || level.isRaining()
               || level.isThundering()
               || !isAvailableForPickup()
@@ -420,7 +420,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
         List<Bat> batsNearby = level.getEntitiesOfClass(Bat.class, new AABB(pos).inflate(32), b -> !b.isDeadOrDying() && !b.isRemoved());
         if (!batsNearby.isEmpty()) {
             Bat regularBat = Util.getRandom(batsNearby, level.getRandom());
-            @Nullable CourierBat courierBat = regularBat.convertTo(Envelope.EntityTypes.COURIER_BAT.get(), false);
+            @Nullable CourierBat courierBat = regularBat.convertTo(Envelope.EntityTypes.COURIER_BAT.get(), ConversionParams.single(regularBat, false, false), converted -> {}); // 1.21.11 signature
             if (courierBat != null) {
                 courierBat.setOrigin(CourierOrigin.regular(pos));
                 bat = courierBat;
@@ -429,10 +429,10 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
 
         if (bat == null
               && Config.Server.BAT_SUMMONED_TO_MAILBOX_IF_NONE_NEARBY.get()
-              && (Config.Server.BAT_MAILBOX_SUMMON_IGNORES_DOMOBSPAWNING.get() || level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING))) {
+              && (Config.Server.BAT_MAILBOX_SUMMON_IGNORES_DOMOBSPAWNING.get() || level.getGameRules().get(GameRules.SPAWN_MOBS))) {
             BlockPos spawnPos = Position.ascendTowards(level, pos, Optional.empty(),
                   Config.Server.DELIVERY_ASCEND_DISTANCE.get(), level.getRandom().nextInt());
-            bat = Envelope.EntityTypes.COURIER_BAT.get().spawn(level, spawnPos, MobSpawnType.NATURAL);
+            bat = Envelope.EntityTypes.COURIER_BAT.get().spawn(level, spawnPos, EntitySpawnReason.NATURAL);
             if (bat != null) {
                 bat.setSpawnPos(spawnPos);
                 bat.onAppeared(level);
@@ -456,9 +456,12 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
         }
     }
 
-    public void onBlockRemoved(Level level, BlockPos pos, BlockState state, BlockState newState) {
+    // 1.21.11: replaces onBlockRemoved (called from Block#onRemove in 1.21.1). Called on the server before the block entity is
+    // removed because its block changed; the default implementation drops the container contents.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         blockRemoved = true;
-        Containers.dropContentsOnDestroy(state, newState, level, pos);
+        super.preRemoveSideEffects(pos, state);
         clearMail();
     }
 
@@ -489,7 +492,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
             boolean isOpen = state.getValue(MailboxBlock.OPEN);
             boolean hasMail = state.getValue(MailboxBlock.HAS_MAIL);
 
-            boolean shouldBeOpen = !(level.isDay() ? getPigeonFoodItem() : getBatFoodItem()).isEmpty() && isSendable(getItem(SLOT_MAIL));
+            boolean shouldBeOpen = !(level.isBrightOutside() ? getPigeonFoodItem() : getBatFoodItem()).isEmpty() && isSendable(getItem(SLOT_MAIL));
             boolean shouldHaveMail = !getAllMail().isEmpty();
 
             if (isOpen != shouldBeOpen || hasMail != shouldHaveMail) {

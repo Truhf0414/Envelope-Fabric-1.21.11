@@ -109,7 +109,7 @@ public interface Occupiable {
 
     default Optional<Entity> releaseOccupant(Level level, BlockPos pos, BlockState state, Occupant occupant, ReleaseReason reason) {
         if (!(level instanceof ServerLevel serverLevel)) return Optional.empty();
-        if ((level.isNight() || level.isRaining() || level.isThundering()) && reason != ReleaseReason.EMERGENCY) {
+        if ((level.isDarkOutside() || level.isRaining() || level.isThundering()) && reason != ReleaseReason.EMERGENCY) {
             return Optional.empty();
         }
 
@@ -128,7 +128,7 @@ public interface Occupiable {
         double x = (double) pos.getX() + 0.5 + offset * (double) direction.getStepX();
         double y = (double) pos.getY() + 0.5 - (double) (entity.getBbHeight() / 2.0F);
         double z = (double) pos.getZ() + 0.5 + offset * (double) direction.getStepZ();
-        entity.moveTo(x, y, z, entity.getYRot(), entity.getXRot());
+        entity.snapTo(x, y, z, entity.getYRot(), entity.getXRot());
 
         level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(entity, state));
         playSound(getOccupantExitSound(entity), 1.0F, entity.level().getRandom().nextFloat() * 0.2F + 0.85F);

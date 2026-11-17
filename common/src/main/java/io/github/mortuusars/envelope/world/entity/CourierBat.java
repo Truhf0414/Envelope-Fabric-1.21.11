@@ -384,7 +384,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
 
     @Override
     public boolean canStartDelivery() {
-        return level().isNight()
+        return level().isDarkOutside()
               && !level().isRaining()
               && !level().isThundering()
               && deliveries < Config.Server.BAT_MAX_DELIVERIES.get();

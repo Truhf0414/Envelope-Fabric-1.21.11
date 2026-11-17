@@ -12,7 +12,7 @@ import io.github.mortuusars.envelope.world.item.tooltip.MailAddressTagTooltip;
 import io.github.mortuusars.envelope.world.mail.address.Address;
 import io.github.mortuusars.envelope.lib.mortaar.world.item.tooltip.CompositeTooltip;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -259,7 +259,7 @@ public final class Mail {
                                           Item.TooltipContext context, Player player, TooltipFlag tooltipFlag) {
         DeliveryInfo deliveryInfo = DeliveryInfo.of(stack);
         if (!deliveryInfo.isEmpty()) {
-            if (Screen.hasShiftDown() && !deliveryInfo.log().isEmpty()) {
+            if (Minecraft.getInstance().hasShiftDown() && !deliveryInfo.log().isEmpty()) {
                 consumer.accept(Component.translatable("gui.envelope.delivery_log"));
                 for (DeliveryRecord record : deliveryInfo.log().records()) {
                     consumer.accept(record.getDisplayComponent());

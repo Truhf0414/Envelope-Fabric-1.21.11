@@ -28,6 +28,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+import net.minecraft.world.Containers;
 
 public class LetterBlockEntity extends BlockEntity implements Nameable {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -46,6 +47,14 @@ public class LetterBlockEntity extends BlockEntity implements Nameable {
     public ItemStack getLetter(@Nullable Player player) {
         unpackLootTableIfPresent(player);
         return !letter.isEmpty() ? letter : new ItemStack(Envelope.Items.LETTER.get());
+    }
+
+    // 1.21.11: moved here from LetterBlock#onRemove (removed). Called on the server when the block changed.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level == null) return;
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), getLetter(null));
+        setLetter(ItemStack.EMPTY);
     }
 
     public void setLetter(ItemStack letter) {

@@ -16,8 +16,11 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -38,6 +41,22 @@ public interface SealedItem {
         return Envelope.SoundEvents.PAPER_TEAR.get();
     }
 
+    /**
+     * 1.21.11: replaces the removed Item#getEatingSound hook. Emits the unsealing sound and item particles while
+     * the item is being used, with the same timing vanilla uses for consumables, but based on the configurable duration.
+     */
+    default void emitUnsealingEffects(LivingEntity entity, ItemStack stack, int remainingUseDuration) {
+        int duration = getUnsealingDuration(stack, entity);
+        if (duration - remainingUseDuration > (int) (duration * 0.21875F) && remainingUseDuration % 4 == 0) {
+            Consumable.builder()
+                  .consumeSeconds(duration / 20f)
+                  .animation(ItemUseAnimation.EAT)
+                  .sound(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(getUnsealingSound()))
+                  .build()
+                  .emitParticlesAndSounds(entity.getRandom(), entity, stack, 5);
+        }
+    }
+
     default int getUnsealingDuration(ItemStack stack, LivingEntity entity) {
         return Config.Server.SEAL_REMOVE_DURATION.get();
     }
@@ -50,16 +69,16 @@ public interface SealedItem {
         return true;
     }
 
-    default @NotNull InteractionResultHolder<ItemStack> useSealedItem(Level level, Player player, InteractionHand hand) {
+    default @NotNull InteractionResult useSealedItem(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!canRemoveSeal(stack, player)) {
             player.displayClientMessage(Component.translatable("gui.envelope.sealed_item.locked").withStyle(ChatFormatting.RED), true);
             player.playSound(SoundEvents.SCULK_BLOCK_FALL);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
         player.startUsingItem(hand);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     default ItemStack unsealByUsing(ItemStack stack, Level level, @Nullable LivingEntity entity) {
@@ -135,16 +154,16 @@ public interface SealedItem {
             int materialColor = seal.material().value().modelTintColor();
 
             if (seal.lock().isPresent() && seal.lock().get().isLocked(Minecrft.level())) {
-                double time = (Minecrft.level().getGameTime() + Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true)) / 20.0;
+                double time = (Minecrft.level().getGameTime() + Minecrft.get().getDeltaTracker().getGameTimeDeltaPartialTick(true)) / 20.0;
                 double beat = Math.pow((Math.sin(time * Math.PI * 2 * 1) + 1.0) * 0.5, 10);
                 float delta = (float) Mth.lerp(beat, 0, 1);
-                return ARGB.lerp(delta, materialColor, OVERLAY_LOCKED_HIGHLIGHT_COLOR);
+                return ARGB.srgbLerp(delta, materialColor, OVERLAY_LOCKED_HIGHLIGHT_COLOR);
             }
 
             if (seal.material().is(SealMaterial.GOLD)) {
-                double time = (Minecrft.level().getGameTime() + Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true)) / 10f;
+                double time = (Minecrft.level().getGameTime() + Minecrft.get().getDeltaTracker().getGameTimeDeltaPartialTick(true)) / 10f;
                 double delta = (Math.sin(time) + 1.0) / 2.0;
-                return ARGB.lerp((float)delta, materialColor, OVERLAY_GOLDEN_HIGHLIGHT_COLOR);
+                return ARGB.srgbLerp((float)delta, materialColor, OVERLAY_GOLDEN_HIGHLIGHT_COLOR);
             }
 
             return materialColor;

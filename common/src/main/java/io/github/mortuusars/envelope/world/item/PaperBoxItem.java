@@ -9,7 +9,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -31,17 +30,17 @@ public class PaperBoxItem extends BlockItem {
         if (context.getPlayer() != null && !context.getPlayer().isSecondaryUseActive()
               && (!(state.getBlock() instanceof PaperBoxBlock) || state.getValue(PaperBoxBlock.BOXES) >= PaperBoxBlock.MAX_BOXES)) {
             openPackingMenu(context.getPlayer(), context.getHand(), context.getItemInHand());
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
+            return InteractionResult.SUCCESS.withoutItem();
         }
 
         return super.useOn(context);
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         openPackingMenu(player, usedHand, stack);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     public boolean openPackingMenu(Player player, InteractionHand hand, ItemStack stack) {

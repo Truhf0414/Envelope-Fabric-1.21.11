@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -35,9 +33,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.util.RandomSource;
 
 public class LetterBlock extends Block implements EntityBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty HAS_CONTENT = BooleanProperty.create("has_content");
 
     public static final VoxelShape SHAPE_NORTH = Block.box(3, 2, 15, 13, 14, 16);
@@ -107,27 +107,18 @@ public class LetterBlock extends Block implements EntityBlock {
     // --
 
     @Override
-    protected @NotNull BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected @NotNull BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) { // 1.21.11 signature
         return !state.canSurvive(level, pos)
               ? Blocks.AIR.defaultBlockState()
-              : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+              : super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (level.getBlockEntity(pos) instanceof LetterBlockEntity blockEntity) {
             blockEntity.setLetter(stack.copyWithCount(1));
-            level.blockUpdated(pos, state.getBlock()); // Force block to update
+            level.updateNeighborsAt(pos, state.getBlock(), null); // Force block to update (1.21.11: blockUpdated removed)
         }
-    }
-
-    @Override
-    public void onRemove(BlockState state, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof LetterBlockEntity blockEntity) {
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), blockEntity.getLetter(null));
-            blockEntity.setLetter(ItemStack.EMPTY);
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     // --
@@ -139,7 +130,7 @@ public class LetterBlock extends Block implements EntityBlock {
             new ClientboundOpenLetterBlockViewScreenPacket(blockEntity.getLetter(player), pos).sendToClient(serverPlayer);
         }
         level.playSound(player, player, Envelope.SoundEvents.PAPER_CRACKLE.get(), SoundSource.PLAYERS, 1, 1);
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
+        return InteractionResult.SUCCESS.withoutItem();
     }
 
     public void ignite(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,

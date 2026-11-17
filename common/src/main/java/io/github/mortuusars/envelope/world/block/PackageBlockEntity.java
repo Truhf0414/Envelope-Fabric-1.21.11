@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.sounds.SoundSource;
 
 public class PackageBlockEntity extends BlockEntity {
     protected ItemStack item = ItemStack.EMPTY;
@@ -48,6 +49,16 @@ public class PackageBlockEntity extends BlockEntity {
     public void setUnpackWhenBroken(boolean unpackWhenBroken) {
         this.unpackWhenBroken = unpackWhenBroken;
         setChanged();
+    }
+
+    // 1.21.11: moved here from PackageBlock#onRemove (removed). Called on the server when the block changed.
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level == null) return;
+        if (unpackWhenBroken()) {
+            level.playSound(null, pos, Envelope.SoundEvents.PAPER_TEAR.get(), SoundSource.BLOCKS, 0.8f, 1);
+        }
+        dropContents(level, pos);
     }
 
     public void dropContents(Level level, BlockPos pos) {

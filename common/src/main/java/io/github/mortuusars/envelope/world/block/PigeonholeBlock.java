@@ -15,30 +15,28 @@ import net.minecraft.stats.Stats;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.WitherSkull;
-import net.minecraft.world.entity.vehicle.MinecartTNT;
+import net.minecraft.world.entity.projectile.hurtingprojectile.WitherSkull;
+import net.minecraft.world.entity.vehicle.minecart.MinecartTNT;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -49,13 +47,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.util.RandomSource;
 
 public class PigeonholeBlock extends BaseEntityBlock {
     public static final MapCodec<PigeonholeBlock> CODEC = simpleCodec(PigeonholeBlock::new);
 
     public static final int MAX_WASTE_LEVEL = 5;
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final IntegerProperty WASTE_LEVEL = IntegerProperty.create("waste_level", 0, MAX_WASTE_LEVEL);
 
     public PigeonholeBlock(Properties properties) {
@@ -91,7 +92,7 @@ public class PigeonholeBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) { // 1.21.11: + direction
         return state.getValue(WASTE_LEVEL);
     }
 
@@ -114,7 +115,7 @@ public class PigeonholeBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return level.isClientSide
+        return level.isClientSide()
               ? null
               : createTickerHelper(blockEntityType, Envelope.BlockEntityTypes.PIGEONHOLE.get(),
               (lvl, blockPos, blockState, blockEntity) -> blockEntity.serverTick(((ServerLevel) lvl), blockPos, state));
@@ -148,13 +149,13 @@ public class PigeonholeBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected @NotNull BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected @NotNull BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) { // 1.21.11 signature
         if (level.getBlockState(neighborPos).getBlock() instanceof FireBlock
               && level.getBlockEntity(pos) instanceof PigeonholeBlockEntity be) {
             be.releaseAllOccupants(be.getLevelOrThrow(), be.getBlockPos(), state, Occupiable.ReleaseReason.EMERGENCY);
         }
 
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     // --
@@ -199,7 +200,7 @@ public class PigeonholeBlock extends BaseEntityBlock {
     // -- Interaction
 
     @Override
-    protected @NotNull ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.is(Envelope.Items.PIGEON_SPAWN_EGG.get())) {
             if (level instanceof ServerLevel serverLevel
                   && level.getBlockEntity(pos) instanceof PigeonholeBlockEntity blockEntity
@@ -208,20 +209,20 @@ public class PigeonholeBlock extends BaseEntityBlock {
                     stack.shrink(1);
                 }
 
-                @Nullable Pigeon pigeon = Envelope.EntityTypes.PIGEON.get().spawn(serverLevel, pos, MobSpawnType.SPAWN_EGG);
+                @Nullable Pigeon pigeon = Envelope.EntityTypes.PIGEON.get().spawn(serverLevel, pos, EntitySpawnReason.SPAWN_ITEM_USE);
                 if (pigeon != null) {
                     blockEntity.addOccupant(pos, state, pigeon);
                 }
             }
 
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         if (stack.is(Envelope.Tags.Items.WASTE_SCOOPABLE) && canScoopWaste(state)) {
             if (level instanceof ServerLevel serverLevel) {
                 dropWasteItems(serverLevel, pos, state, player.getItemInHand(hand), player);
                 clearWaste(level, pos, state);
-                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                stack.hurtAndBreak(1, player, hand); // 1.21.11: takes the hand directly
                 player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 
                 Direction facing = state.getValue(FACING);
@@ -240,7 +241,7 @@ public class PigeonholeBlock extends BaseEntityBlock {
             level.playSound(player, pos, Envelope.SoundEvents.PIGEONHOLE_SCOOP.get(), SoundSource.BLOCKS,
                   1.0F, level.random.nextFloat() * 0.2f + 0.95f);
 
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);

@@ -15,7 +15,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
@@ -29,8 +28,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 
 public class AddressTagItem extends Item implements ApplicatorItem {
     public AddressTagItem(Properties properties) {
@@ -38,10 +38,10 @@ public class AddressTagItem extends Item implements ApplicatorItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) { // 1.21.11: Consumer + TooltipDisplay
         @Nullable Address address = stack.get(Envelope.DataComponents.ADDRESS_TAG_ADDRESS);
         if (address != null) {
-            tooltipComponents.add(address.format()
+            tooltipComponents.accept(address.format()
                   .withIcon()
                   .withIconColor(Colors.ADDRESS_NEUTRAL)
                   .withColor(Colors.ADDRESS_NEUTRAL)
@@ -134,21 +134,21 @@ public class AddressTagItem extends Item implements ApplicatorItem {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (player.isSecondaryUseActive()) {
             @Nullable Address removedAddress = player.getItemInHand(hand).remove(Envelope.DataComponents.ADDRESS_TAG_ADDRESS);
             if (removedAddress != null) {
                 player.playSound(Envelope.SoundEvents.UI_WRITE.get(), 0.35f, 1);
-                return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
+                return InteractionResult.SUCCESS;
             }
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            AllAddresses knownAddresses = MailService.of(serverPlayer.serverLevel()).getKnownAddresses();
+            AllAddresses knownAddresses = MailService.of(serverPlayer.level()).getKnownAddresses();
             new ClientboundOpenAddressTagScreenPacket(hand, knownAddresses).sendToClient(serverPlayer);
-            player.getCooldowns().addCooldown(this, 5);
+            player.getCooldowns().addCooldown(player.getItemInHand(hand), 5); // 1.21.11: cooldowns are keyed by stack
         }
 
-        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 }

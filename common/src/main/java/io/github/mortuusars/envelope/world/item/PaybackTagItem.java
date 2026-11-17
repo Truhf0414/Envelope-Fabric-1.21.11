@@ -106,12 +106,12 @@ public class PaybackTagItem extends Item implements ApplicatorItem {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (player.isSecondaryUseActive()) {
             @Nullable PaybackRequest removedRequest = player.getItemInHand(hand).remove(Envelope.DataComponents.PAYBACK_TAG_CONTENTS);
             if (removedRequest != null) {
                 player.playSound(Envelope.SoundEvents.UI_WRITE.get(), 0.35f, 1);
-                return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
+                return InteractionResult.SUCCESS;
             }
         }
 
@@ -121,9 +121,9 @@ public class PaybackTagItem extends Item implements ApplicatorItem {
                   new SimpleMenuProvider((id, inventory, pl) ->
                         new PaybackTagMenu(id, inventory, hand), Component.translatable("container.envelope.payback_tag")),
                   buffer -> buffer.writeEnum(hand));
-            player.getCooldowns().addCooldown(this, 5);
+            player.getCooldowns().addCooldown(player.getItemInHand(hand), 5); // 1.21.11: cooldowns are keyed by stack
         }
 
-        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

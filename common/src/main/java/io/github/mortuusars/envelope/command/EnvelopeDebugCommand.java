@@ -160,7 +160,7 @@ public class EnvelopeDebugCommand {
 //        player.level().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(16))
 //              .forEach(p -> p.restrictTo(player.blockPosition(), 4));
 
-        //        EquineAssuranceBureau.sendNotice(MailService.of(player.serverLevel()),
+        //        EquineAssuranceBureau.sendNotice(MailService.of(player.level()),
 //              ServiceAddress.getOrThrow(player.registryAccess(), ServiceAddresses.EQUINE_ASSURANCE_BUREAU));
 
 //        ItemStack item = new ItemStack(Envelope.Items.LETTER.get());
@@ -191,7 +191,7 @@ public class EnvelopeDebugCommand {
 //            }
 //        }
 
-//        MailService.of(player.serverLevel()).getDeliveryManager()
+//        MailService.of(player.level()).getDeliveryManager()
 //              .startService(Delivery.draft()
 //                    .deliver(Mail.createPackage(new PackageContents(List.of(new ItemStack(Items.ACACIA_LOG))))
 //                          .get())

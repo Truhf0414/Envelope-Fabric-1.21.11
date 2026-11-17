@@ -9,13 +9,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CustomSpawner;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ public class PigeonInStructureSpawner implements CustomSpawner {
 
     @Override
     public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
-        if (!spawnFriendlies || !level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+        if (!spawnFriendlies || !level.getGameRules().get(GameRules.SPAWN_MOBS)) {
             return 0;
         }
 
@@ -93,10 +93,10 @@ public class PigeonInStructureSpawner implements CustomSpawner {
             return 0;
         }
 
-        pigeon.moveTo(pos, 0.0F, 0.0F);
-        pigeon.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), MobSpawnType.NATURAL, null);
+        pigeon.snapTo(pos, 0.0F, 0.0F);
+        pigeon.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.NATURAL, null);
 
-        if (Config.Server.PIGEON_GHOST_HALLOWEEN.get() && level.isNight() && Time.isHalloween() && level.getRandom().nextBoolean()) {
+        if (Config.Server.PIGEON_GHOST_HALLOWEEN.get() && level.isDarkOutside() && Time.isHalloween() && level.getRandom().nextBoolean()) {
             PigeonVariant.get(level.registryAccess(), PigeonVariant.GHOST)
                   .ifPresent(pigeon::setVariant);
         }

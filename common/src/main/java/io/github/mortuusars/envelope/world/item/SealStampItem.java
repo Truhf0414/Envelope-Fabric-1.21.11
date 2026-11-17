@@ -22,8 +22,9 @@ import net.minecraft.world.item.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 
 public class SealStampItem extends Item implements ApplicatorItem {
     public SealStampItem(Properties properties) {
@@ -71,23 +72,23 @@ public class SealStampItem extends Item implements ApplicatorItem {
     // --
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> components, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> components, TooltipFlag flag) { // 1.21.11: Consumer + TooltipDisplay
         HolderLookup.Provider registries = context.registries();
         if (flag.isAdvanced() && registries != null) {
             getMaterial(stack)
                   .flatMap(t -> t.unwrap(registries))
                   .flatMap(Holder::unwrapKey)
                   .ifPresent(key -> {
-                      components.add(Component.literal("Material: ").withStyle(ChatFormatting.DARK_GRAY)
-                            .append(Component.literal(key.location().toString()).withStyle(ChatFormatting.GRAY)));
+                      components.accept(Component.literal("Material: ").withStyle(ChatFormatting.DARK_GRAY)
+                            .append(Component.literal(key.identifier().toString()).withStyle(ChatFormatting.GRAY)));
                   });
 
             getDie(stack)
                   .flatMap(t -> t.unwrap(registries))
                   .flatMap(Holder::unwrapKey)
                   .ifPresent(key -> {
-                      components.add(Component.literal("Die: ").withStyle(ChatFormatting.DARK_GRAY)
-                            .append(Component.literal(key.location().toString()).withStyle(ChatFormatting.GRAY)));
+                      components.accept(Component.literal("Die: ").withStyle(ChatFormatting.DARK_GRAY)
+                            .append(Component.literal(key.identifier().toString()).withStyle(ChatFormatting.GRAY)));
                   });
         }
     }
@@ -194,7 +195,7 @@ public class SealStampItem extends Item implements ApplicatorItem {
                 return false;
             }
 
-            for (ItemStack item : Minecrft.player().getInventory().items) {
+            for (ItemStack item : Minecrft.player().getInventory().getNonEquipmentItems()) {
                 if (item == stack) {
                     return true;
                 }

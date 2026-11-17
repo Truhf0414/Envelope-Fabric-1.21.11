@@ -44,7 +44,7 @@ public class DroppedMailSpawner extends Spawner {
               item.pos().getY() + 0.5,
               item.pos().getZ() + 0.5,
               item.item());
-        entity.moveTo(spawnPos, entity.getYRot(), entity.getXRot());
+        entity.snapTo(spawnPos, entity.getYRot(), entity.getXRot());
         level.addFreshEntityWithPassengers(entity);
 
         backgroundDelivery.removeDroppedMail(item);

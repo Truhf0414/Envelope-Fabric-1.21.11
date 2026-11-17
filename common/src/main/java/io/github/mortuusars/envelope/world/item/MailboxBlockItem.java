@@ -15,16 +15,23 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.item.ItemStack;
 
 public class MailboxBlockItem extends BlockItem {
     public MailboxBlockItem(Block block, Properties properties) {
         super(block, properties);
     }
 
+    // 1.21.11: BLOCK_ENTITY_DATA is TypedEntityData (no CustomData default)
+    private static boolean hasAddressInBlockEntityData(ItemStack stack) {
+        var data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+        return data != null && data.contains("address");
+    }
+
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
         if (!MailService.operatesIn(context.getLevel())
-              || context.getItemInHand().getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).contains("address")) {
+              || hasAddressInBlockEntityData(context.getItemInHand())) {
             return super.useOn(context);
         }
 
@@ -35,7 +42,7 @@ public class MailboxBlockItem extends BlockItem {
                 var hitResult = new BlockHitResult(context.getClickLocation(),
                       context.getClickedFace(), context.getClickedPos(), context.isInside());
                 new ClientboundOpenMailboxPlacingScreenPacket(context.getHand(), hitResult,
-                      MailService.of(serverPlayer.serverLevel()).getKnownAddresses()).sendToClient(serverPlayer);
+                      MailService.of(serverPlayer.level()).getKnownAddresses()).sendToClient(serverPlayer);
             }
 
             context.getLevel().playSound(context.getPlayer(), context.getClickedPos(),

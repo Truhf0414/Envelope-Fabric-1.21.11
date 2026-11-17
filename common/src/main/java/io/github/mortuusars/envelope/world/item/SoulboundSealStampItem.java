@@ -41,7 +41,7 @@ public class SoulboundSealStampItem extends SealStampItem {
         double time = Util.getMillis() / 1000.0;
         double beat = Math.pow((Math.sin(time * Math.PI * 2 * 1) + 1.0) * 0.5, 10);
         float delta = (float) Mth.lerp(beat, 0, 1);
-        return ARGB.lerp(delta, 0xFF08ABB3, 0xFF40E7FF);
+        return ARGB.srgbLerp(delta, 0xFF08ABB3, 0xFF40E7FF);
     }
 
     // --
@@ -96,7 +96,7 @@ public class SoulboundSealStampItem extends SealStampItem {
                 stampStack.setCount(1); // Empty stacks do not return proper components and 'transmuteCopy' returns ItemStack.EMPTY
 
                 ResourceKey<SealMaterial> originalMaterial = Optional.ofNullable(stampStack.get(Envelope.DataComponents.SEAL_STAMP_MATERIAL))
-                      .map(EitherHolder::key)
+                      .flatMap(EitherHolder::key) // 1.21.11: EitherHolder#key is Optional
                       .orElse(SealMaterial.WAX);
 
                 @Nullable DyeColor color = SealMaterial.colorFromMaterial(originalMaterial);
@@ -110,7 +110,7 @@ public class SoulboundSealStampItem extends SealStampItem {
                 newStampStack.remove(DataComponents.MAX_DAMAGE);
 
                 player.getSlot(Player.HELD_ITEM_SLOT).set(newStampStack);
-                player.level().playSound(null, player, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.75f, 1f);
+                player.level().playSound(null, player, SoundEvents.ITEM_BREAK.value(), SoundSource.PLAYERS, 0.75f, 1f); // 1.21.11: ITEM_BREAK is a Holder
             }
         }
     }
