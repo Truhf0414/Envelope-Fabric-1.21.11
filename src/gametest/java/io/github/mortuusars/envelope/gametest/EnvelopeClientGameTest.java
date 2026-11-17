@@ -53,6 +53,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
             checkRecipeSync(context, singleplayer, results, problems);
             smoke(context, singleplayer, results, problems);
             checkAssets(context, results, problems);
+            DataCounts.check(singleplayer, results, problems, DATA_AND_ASSETS_COMPLETE);
 
             EntityShots.run(context, singleplayer);
             ScreenShots.run(context, singleplayer, problems);
@@ -156,7 +157,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         if (envelopeOnServer != envelopeOnClient) {
             problems.add("recipe sync: server has " + envelopeOnServer + " envelope recipes, client received " + envelopeOnClient);
         }
-        if (ITEM_MODELS_REQUIRED && onServer == 0) {
+        if (DATA_AND_ASSETS_COMPLETE && onServer == 0) {
             // Phase 4 (same switch as the item models): once the recipe JSON is converted there must be mailing recipes,
             // otherwise "0 on both sides" would pass without testing the sync of the type JEI needs.
             problems.add("recipe sync: no mailing recipes are loaded, the mailing comparison proves nothing");
@@ -167,7 +168,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
     }
 
     /** Phase 4 turns this on: until the item definitions exist, every item is expected to have no model. */
-    private static final boolean ITEM_MODELS_REQUIRED = false;
+    static final boolean DATA_AND_ASSETS_COMPLETE = false;
 
     /**
      * Every registered Envelope item must have an item model definition that resolves (1.21.4+: assets/&lt;ns&gt;/items)
@@ -201,7 +202,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         if (!summary.endsWith("without name: 0")) {
             problems.add("assets: some items have no translated name -> " + summary);
         }
-        if (ITEM_MODELS_REQUIRED && !summary.contains("without item model: 0,")) {
+        if (DATA_AND_ASSETS_COMPLETE && !summary.contains("without item model: 0,")) {
             problems.add("assets: some items have no item model -> " + summary);
         }
     }
