@@ -11,7 +11,7 @@ import io.github.mortuusars.envelope.world.mail.delivery.CourierOrigin;
 import io.github.mortuusars.envelope.world.mail.delivery.CourierProperties;
 import io.github.mortuusars.envelope.world.mail.delivery.Delivery;
 import io.github.mortuusars.envelope.world.mail.delivery.PhysicalCourier;
-import io.github.mortuusars.mortaar.bugger.Bugger;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;

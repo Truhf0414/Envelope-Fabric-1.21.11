@@ -2,7 +2,7 @@ package io.github.mortuusars.envelope.client.gui.tooltip;
 
 import io.github.mortuusars.envelope.EnvelopeClient;
 import io.github.mortuusars.envelope.world.item.component.seal.Seal;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;

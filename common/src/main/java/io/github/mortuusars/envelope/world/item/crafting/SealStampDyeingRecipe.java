@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.world.item.crafting;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.item.SealStampItem;
 import io.github.mortuusars.envelope.world.item.component.seal.SealMaterial;
-import io.github.mortuusars.mortaar.resources.Resource;
+import io.github.mortuusars.envelope.lib.mortaar.resources.Resource;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeItem;

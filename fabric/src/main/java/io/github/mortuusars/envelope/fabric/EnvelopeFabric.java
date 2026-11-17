@@ -41,6 +41,8 @@ import net.neoforged.fml.config.ModConfig;
 public class EnvelopeFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        // Port: Mortaar is vendored (no longer its own mod), so its initializer runs first, from here.
+        new io.github.mortuusars.envelope.lib.mortaar.fabric.MortaarFabric().onInitialize();
         Envelope.init();
 
         NeoForgeConfigRegistry.INSTANCE.register(Envelope.ID, ModConfig.Type.SERVER, Config.Server.SPEC);

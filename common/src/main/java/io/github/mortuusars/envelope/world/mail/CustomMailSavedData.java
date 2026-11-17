@@ -5,7 +5,7 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.util.PersistentData;
-import io.github.mortuusars.mortaar.Platform;
+import io.github.mortuusars.envelope.lib.mortaar.Platform;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;

@@ -1,6 +1,6 @@
 package io.github.mortuusars.envelope.test.cases.address;
 
-import io.github.mortuusars.mortaar.bugger.test.BuggerTests;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.test.BuggerTests;
 import net.minecraft.server.MinecraftServer;
 
 class AddressTests extends BuggerTests {

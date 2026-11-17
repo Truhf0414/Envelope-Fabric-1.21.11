@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.world.level.saveddata.SealLocks;
-import io.github.mortuusars.mortaar.util.GameTimeId;
+import io.github.mortuusars.envelope.lib.mortaar.util.GameTimeId;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

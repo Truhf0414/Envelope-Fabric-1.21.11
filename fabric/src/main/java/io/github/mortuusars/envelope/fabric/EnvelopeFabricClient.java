@@ -27,6 +27,8 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 public class EnvelopeFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        // Port: Mortaar is vendored (no longer its own mod), so its client initializer runs first, from here.
+        new io.github.mortuusars.envelope.lib.mortaar.fabric.MortaarFabricClient().onInitializeClient();
         EnvelopeClient.init();
 
         ConfigScreenFactoryRegistry.INSTANCE.register(Envelope.ID, ConfigurationScreen::new);

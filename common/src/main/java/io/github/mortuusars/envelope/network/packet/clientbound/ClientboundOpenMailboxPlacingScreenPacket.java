@@ -2,9 +2,9 @@ package io.github.mortuusars.envelope.network.packet.clientbound;
 
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.network.handler.ClientboundPacketsHandler;
-import io.github.mortuusars.mortaar.network.packet.Packet;
+import io.github.mortuusars.envelope.lib.mortaar.network.packet.Packet;
 import io.github.mortuusars.envelope.world.mail.address.AllAddresses;
-import io.github.mortuusars.mortaar.network.codec.StreamCodecs;
+import io.github.mortuusars.envelope.lib.mortaar.network.codec.StreamCodecs;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

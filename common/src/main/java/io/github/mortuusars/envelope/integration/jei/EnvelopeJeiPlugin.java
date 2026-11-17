@@ -10,7 +10,7 @@ import io.github.mortuusars.envelope.integration.jei.util.ServiceLetterMeaningSu
 import io.github.mortuusars.envelope.integration.jei.util.PackingRecipeTransferInfo;
 import io.github.mortuusars.envelope.world.item.crafting.*;
 import io.github.mortuusars.envelope.world.mail.service.cloud_depository.CloudDepository;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.integration.jei.category.MailingRecipeCategory;
 import io.github.mortuusars.envelope.integration.jei.ingredient.ServiceAddressIngredientHelper;
 import io.github.mortuusars.envelope.integration.jei.ingredient.ServiceAddressIngredientRenderer;

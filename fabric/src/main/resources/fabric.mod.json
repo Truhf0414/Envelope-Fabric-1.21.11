@@ -27,7 +27,9 @@
   },
   "mixins": [
     "${mod_id}-fabric.mixins.json",
-    "${mod_id}-common.mixins.json"
+    "${mod_id}-common.mixins.json",
+    "envelope-mortaar-common.mixins.json",
+    "envelope-mortaar-fabric.mixins.json"
   ],
   "depends": {
     "minecraft": ["1.21.0", "1.21.1"],

@@ -1,11 +1,11 @@
 package io.github.mortuusars.envelope.client.gui.screen;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.network.packet.serverbound.ServerboundPackingMenuPresetAddressPacket;
 import io.github.mortuusars.envelope.world.inventory.PackingMenu;
 import io.github.mortuusars.envelope.world.mail.address.Address;
-import io.github.mortuusars.mortaar.client.gui.Sprites;
+import io.github.mortuusars.envelope.lib.mortaar.client.gui.Sprites;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;

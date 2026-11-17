@@ -1,7 +1,7 @@
 package io.github.mortuusars.envelope.network.packet.serverbound;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.network.packet.Packet;
+import io.github.mortuusars.envelope.lib.mortaar.network.packet.Packet;
 import io.github.mortuusars.envelope.world.item.LetterAndQuillItem;
 import io.github.mortuusars.envelope.world.item.component.LetterAndQuillContent;
 import net.minecraft.network.RegistryFriendlyByteBuf;

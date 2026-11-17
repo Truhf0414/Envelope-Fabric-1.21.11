@@ -1,10 +1,10 @@
 package io.github.mortuusars.envelope.client.gui.tooltip;
 
 import io.github.mortuusars.envelope.EnvelopeClient;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.world.item.component.seal.SealSymbol;
 import io.github.mortuusars.envelope.world.item.component.seal.ShadingPalette;
-import io.github.mortuusars.mortaar.resources.Resource;
+import io.github.mortuusars.envelope.lib.mortaar.resources.Resource;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;

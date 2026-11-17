@@ -9,7 +9,7 @@ import io.github.mortuusars.envelope.integration.sable.ContraptionTargets;
 import io.github.mortuusars.envelope.world.Position;
 import io.github.mortuusars.envelope.world.block.PigeonholeBlockEntity;
 import io.github.mortuusars.envelope.world.entity.Pigeon;
-import io.github.mortuusars.mortaar.util.Ticks;
+import io.github.mortuusars.envelope.lib.mortaar.util.Ticks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;

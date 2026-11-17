@@ -1,0 +1,15 @@
+package io.github.mortuusars.envelope.lib.mortaar.fabric;
+
+import fuzs.forgeconfigapiport.fabric.api.v5.client.ConfigScreenFactoryRegistry;
+import io.github.mortuusars.envelope.lib.mortaar.Mortaar;
+import io.github.mortuusars.envelope.lib.mortaar.MortaarClient;
+import net.fabricmc.api.ClientModInitializer;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+
+public class MortaarFabricClient implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        MortaarClient.init();
+        ConfigScreenFactoryRegistry.INSTANCE.register(Mortaar.ID, ConfigurationScreen::new);
+    }
+}

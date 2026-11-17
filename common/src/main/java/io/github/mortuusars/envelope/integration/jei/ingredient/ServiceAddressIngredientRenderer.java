@@ -2,12 +2,12 @@ package io.github.mortuusars.envelope.integration.jei.ingredient;
 
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.world.mail.delivery.CourierProperties;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.util.Colors;
 import io.github.mortuusars.envelope.util.EnvelopeSymbols;
 import io.github.mortuusars.envelope.world.mail.address.AddressFormatter;
 import io.github.mortuusars.envelope.world.mail.address.type.ServiceAddress;
-import io.github.mortuusars.mortaar.util.GameTime;
+import io.github.mortuusars.envelope.lib.mortaar.util.GameTime;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;

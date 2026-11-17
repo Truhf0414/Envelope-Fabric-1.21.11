@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.network.packet.clientbound.ClientboundSyncDeathLockDataPacket;
 import io.github.mortuusars.envelope.world.item.component.SealLock;
-import io.github.mortuusars.mortaar.Platform;
+import io.github.mortuusars.envelope.lib.mortaar.Platform;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;

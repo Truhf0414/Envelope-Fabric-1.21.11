@@ -6,7 +6,7 @@ import io.github.mortuusars.envelope.world.entity.Pigeon;
 import io.github.mortuusars.envelope.world.mail.delivery.background.FinishedBackgroundCourier;
 import io.github.mortuusars.envelope.world.mail.delivery.background.BackgroundDelivery;
 import io.github.mortuusars.envelope.world.mail.MailService;
-import io.github.mortuusars.mortaar.util.GameTime;
+import io.github.mortuusars.envelope.lib.mortaar.util.GameTime;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

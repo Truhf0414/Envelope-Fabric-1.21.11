@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.world;
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.entity.Pigeon;
-import io.github.mortuusars.mortaar.util.Ticks;
+import io.github.mortuusars.envelope.lib.mortaar.util.Ticks;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;

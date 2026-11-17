@@ -2,7 +2,7 @@ package io.github.mortuusars.envelope.client.gui.screen;
 
 import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.network.packet.serverbound.ServerboundMailboxPlacePacket;
 import io.github.mortuusars.envelope.world.item.MailboxBlockItem;
 import io.github.mortuusars.envelope.world.mail.address.AllAddresses;

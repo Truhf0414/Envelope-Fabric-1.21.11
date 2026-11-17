@@ -9,7 +9,7 @@ import io.github.mortuusars.envelope.world.mail.address.Address;
 import io.github.mortuusars.envelope.world.mail.address.AllAddresses;
 import io.github.mortuusars.envelope.network.packet.clientbound.ClientboundOpenAddressTagScreenPacket;
 import io.github.mortuusars.envelope.world.mail.MailService;
-import io.github.mortuusars.mortaar.world.item.ApplicatorItem;
+import io.github.mortuusars.envelope.lib.mortaar.world.item.ApplicatorItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;

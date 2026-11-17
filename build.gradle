@@ -31,8 +31,9 @@ repositories {
 // non-client packages (e.g. Mail.java), exactly as it did under Architectury.
 sourceSets {
     main {
-        java.srcDirs = ['common/src/main/java', 'fabric/src/main/java']
-        resources.srcDirs = ['common/src/main/resources', 'common/src/generated', 'fabric/src/main/resources']
+        // mortaar/ = vendored Mortaar 1.7.2 (MIT), repackaged to io.github.mortuusars.envelope.lib.mortaar
+        java.srcDirs = ['common/src/main/java', 'fabric/src/main/java', 'mortaar/src/main/java']
+        resources.srcDirs = ['common/src/main/resources', 'common/src/generated', 'fabric/src/main/resources', 'mortaar/src/main/resources']
         resources.exclude '.cache/**', 'architectury.common.json', 'hotswap-agent.properties'
     }
     test {
@@ -132,5 +133,8 @@ tasks.withType(JavaCompile).configureEach {
 jar {
     from("LICENSE.md") {
         rename { "LICENSE_${project.base.archivesName.get()}.md" }
+    }
+    from("mortaar/LICENSE.md") {
+        rename { "LICENSE_mortaar.md" }
     }
 }

@@ -10,7 +10,7 @@ import io.github.mortuusars.envelope.world.item.component.mail.log.DeliveryLog;
 import io.github.mortuusars.envelope.world.item.component.mail.log.DeliveryRecord;
 import io.github.mortuusars.envelope.world.item.tooltip.MailAddressTagTooltip;
 import io.github.mortuusars.envelope.world.mail.address.Address;
-import io.github.mortuusars.mortaar.world.item.tooltip.CompositeTooltip;
+import io.github.mortuusars.envelope.lib.mortaar.world.item.tooltip.CompositeTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;

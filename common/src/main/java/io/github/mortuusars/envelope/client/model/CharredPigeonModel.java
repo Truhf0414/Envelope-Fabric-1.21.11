@@ -1,9 +1,9 @@
 package io.github.mortuusars.envelope.client.model;
 
 import com.google.common.collect.ImmutableList;
-import io.github.mortuusars.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import io.github.mortuusars.envelope.world.entity.CharredPigeon;
-import io.github.mortuusars.mortaar.util.Easing;
+import io.github.mortuusars.envelope.lib.mortaar.util.Easing;
 import net.minecraft.client.model.AgeableListModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;

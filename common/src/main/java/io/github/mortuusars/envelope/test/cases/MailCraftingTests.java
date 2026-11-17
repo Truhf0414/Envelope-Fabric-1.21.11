@@ -1,8 +1,8 @@
 package io.github.mortuusars.envelope.test.cases;
 
-import io.github.mortuusars.mortaar.Platform;
-import io.github.mortuusars.mortaar.bugger.test.BuggerTests;
-import io.github.mortuusars.mortaar.bugger.test.Test;
+import io.github.mortuusars.envelope.lib.mortaar.Platform;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.test.BuggerTests;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.test.Test;
 import io.github.mortuusars.envelope.world.item.crafting.mail.MailRecipeInput;
 import io.github.mortuusars.envelope.world.item.crafting.mail.Mailing;
 import io.github.mortuusars.envelope.world.item.crafting.mail.MailCraftingRecipe;

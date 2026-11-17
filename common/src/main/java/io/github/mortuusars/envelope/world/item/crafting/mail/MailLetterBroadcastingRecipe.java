@@ -14,7 +14,7 @@ import io.github.mortuusars.envelope.world.mail.address.type.BlockAddress;
 import io.github.mortuusars.envelope.world.mail.address.type.ServiceAddress;
 import io.github.mortuusars.envelope.world.mail.address.type.PlayerAddress;
 import io.github.mortuusars.envelope.world.mail.delivery.Delivery;
-import io.github.mortuusars.mortaar.serialization.Codecs;
+import io.github.mortuusars.envelope.lib.mortaar.serialization.Codecs;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;

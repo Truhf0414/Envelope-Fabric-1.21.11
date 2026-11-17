@@ -10,7 +10,7 @@ import io.github.mortuusars.envelope.world.item.mail.Mail;
 import io.github.mortuusars.envelope.world.mail.delivery.background.BackgroundCourier;
 import io.github.mortuusars.envelope.world.entity.spawning.SpawnableEntityData;
 import io.github.mortuusars.envelope.world.mail.MailService;
-import io.github.mortuusars.mortaar.util.Ticks;
+import io.github.mortuusars.envelope.lib.mortaar.util.Ticks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;

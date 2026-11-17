@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.world.item.component.seal;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.serialization.Codecs;
+import io.github.mortuusars.envelope.lib.mortaar.serialization.Codecs;
 import net.minecraft.core.Holder;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;

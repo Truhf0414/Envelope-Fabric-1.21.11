@@ -8,8 +8,8 @@ import io.github.mortuusars.envelope.world.item.component.mail.log.record.Messag
 import io.github.mortuusars.envelope.world.item.component.mail.log.record.ReturnedRecord;
 import io.github.mortuusars.envelope.world.item.component.mail.log.record.SentRecord;
 import io.github.mortuusars.envelope.world.mail.address.Address;
-import io.github.mortuusars.mortaar.Platform;
-import io.github.mortuusars.mortaar.util.GameTime;
+import io.github.mortuusars.envelope.lib.mortaar.Platform;
+import io.github.mortuusars.envelope.lib.mortaar.util.GameTime;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;

@@ -9,7 +9,7 @@ import io.github.mortuusars.envelope.world.item.mail.Mail;
 import io.github.mortuusars.envelope.world.mail.MailService;
 import io.github.mortuusars.envelope.world.mail.address.Address;
 import io.github.mortuusars.envelope.world.mail.dropoff.*;
-import io.github.mortuusars.mortaar.bugger.Bugger;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;

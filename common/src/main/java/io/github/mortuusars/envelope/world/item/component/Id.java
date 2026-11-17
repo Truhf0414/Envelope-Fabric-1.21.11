@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.world.item.component;
 import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import io.github.mortuusars.mortaar.util.GameTime;
+import io.github.mortuusars.envelope.lib.mortaar.util.GameTime;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

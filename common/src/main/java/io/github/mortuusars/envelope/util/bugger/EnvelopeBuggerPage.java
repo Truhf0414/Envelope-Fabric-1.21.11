@@ -1,7 +1,7 @@
 package io.github.mortuusars.envelope.util.bugger;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.bugger.screen.page.BuggerScreenPage;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.screen.page.BuggerScreenPage;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 

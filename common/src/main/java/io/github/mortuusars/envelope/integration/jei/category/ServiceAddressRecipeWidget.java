@@ -2,8 +2,8 @@ package io.github.mortuusars.envelope.integration.jei.category;
 
 import io.github.mortuusars.envelope.integration.jei.EnvelopeJeiPlugin;
 import io.github.mortuusars.envelope.world.mail.address.type.ServiceAddress;
-import io.github.mortuusars.mortaar.client.Minecrft;
-import io.github.mortuusars.mortaar.util.TextUtil;
+import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
+import io.github.mortuusars.envelope.lib.mortaar.util.TextUtil;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.widgets.IRecipeWidget;
 import mezz.jei.api.ingredients.IIngredientRenderer;

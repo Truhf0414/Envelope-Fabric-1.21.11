@@ -2,7 +2,6 @@ package io.github.mortuusars.envelope;
 
 import com.google.common.base.Preconditions;
 import com.mojang.logging.LogUtils;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.github.mortuusars.envelope.advancements.critereon.BreakPaperBoxWhenFallingTrigger;
 import io.github.mortuusars.envelope.advancements.critereon.MailDeliveredTrigger;
 import io.github.mortuusars.envelope.advancements.predicate.ItemOccludingBlockPredicate;
@@ -48,12 +47,12 @@ import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffContext;
 import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffResult;
 import io.github.mortuusars.envelope.world.mail.service.cloud_depository.CloudDepository;
 import io.github.mortuusars.envelope.world.mail.service.ServiceAddressDefinition;
-import io.github.mortuusars.mortaar.Register;
-import io.github.mortuusars.mortaar.Registrar;
-import io.github.mortuusars.mortaar.bugger.Bugger;
-import io.github.mortuusars.mortaar.bugger.data.EntityData;
-import io.github.mortuusars.mortaar.bugger.data.OptionalEntityData;
-import io.github.mortuusars.mortaar.util.DeferredSoundType;
+import io.github.mortuusars.envelope.lib.mortaar.Register;
+import io.github.mortuusars.envelope.lib.mortaar.Registrar;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.data.EntityData;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.data.OptionalEntityData;
+import io.github.mortuusars.envelope.lib.mortaar.util.DeferredSoundType;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
 import net.minecraft.advancements.critereon.PlayerTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
@@ -159,14 +158,12 @@ public class Envelope {
         return ResourceLocation.fromNamespaceAndPath(ID, path);
     }
 
-    @ExpectPlatform
     public static void registerServiceDropOffHandlers() {
-        throw new AssertionError();
+        io.github.mortuusars.envelope.fabric.EnvelopeImpl.registerServiceDropOffHandlers();
     }
 
-    @ExpectPlatform
     public static MailDropOffResult postHandleMailDropOffEvent(MailDropOffContext context) {
-        throw new AssertionError();
+        return io.github.mortuusars.envelope.fabric.EnvelopeImpl.postHandleMailDropOffEvent(context);
     }
 
     public static class Blocks {

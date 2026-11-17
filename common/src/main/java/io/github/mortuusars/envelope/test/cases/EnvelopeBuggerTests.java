@@ -1,6 +1,6 @@
 package io.github.mortuusars.envelope.test.cases;
 
-import io.github.mortuusars.mortaar.bugger.test.BuggerTests;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.test.BuggerTests;
 
 public class EnvelopeBuggerTests {
     public static BuggerTests create() {

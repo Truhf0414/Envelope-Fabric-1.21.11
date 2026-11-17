@@ -1,7 +1,7 @@
 package io.github.mortuusars.envelope.mixin.shears_clearing;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.mortaar.world.item.ApplicatorItem;
+import io.github.mortuusars.envelope.lib.mortaar.world.item.ApplicatorItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;

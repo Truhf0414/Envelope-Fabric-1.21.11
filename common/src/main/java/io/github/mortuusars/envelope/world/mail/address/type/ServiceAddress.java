@@ -6,7 +6,7 @@ import io.github.mortuusars.envelope.Config;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.mail.address.Address;
 import io.github.mortuusars.envelope.world.mail.service.ServiceAddressDefinition;
-import io.github.mortuusars.mortaar.resources.Resource;
+import io.github.mortuusars.envelope.lib.mortaar.resources.Resource;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;

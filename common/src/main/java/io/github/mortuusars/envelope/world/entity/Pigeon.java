@@ -15,7 +15,7 @@ import io.github.mortuusars.envelope.world.entity.ai.goal.courier.StartDeliveryF
 import io.github.mortuusars.envelope.world.entity.ai.goal.pigeon.*;
 import io.github.mortuusars.envelope.world.entity.spawning.SpawnableEntityData;
 import io.github.mortuusars.envelope.world.mail.delivery.*;
-import io.github.mortuusars.mortaar.bugger.Bugger;
+import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.DustParticleOptions;
