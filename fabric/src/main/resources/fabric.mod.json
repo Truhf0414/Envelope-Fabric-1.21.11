@@ -14,6 +14,7 @@
   "license": "${mod_license}",
   "icon": "icon.png",
   "environment": "*",
+  "accessWidener": "envelope.accesswidener",
   "entrypoints": {
     "main": [
       "io.github.mortuusars.envelope.fabric.EnvelopeFabric"
@@ -32,9 +33,16 @@
     "envelope-mortaar-fabric.mixins.json"
   ],
   "depends": {
-    "minecraft": ["1.21.0", "1.21.1"],
+    "minecraft": "~1.21.11",
     "fabric": "*",
     "fabric-api": "*",
-    "forgeconfigapiport": ">=21.0.0"
+    "forgeconfigapiport": ">=21.11.0"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_3218": [
+        "io/github/mortuusars/envelope/world/mail/MailServiceHolder"
+      ]
+    }
   }
 }
