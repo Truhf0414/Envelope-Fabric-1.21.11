@@ -121,14 +121,26 @@ public class PortRuntimeTests extends BuggerTests {
                 }
                 T decoded = decode(player, codec, written);
                 byte[] rewritten = encode(player, codec, decoded);
-                return Arrays.equals(written, rewritten)
-                      ? DataResult.success(true)
-                      : DataResult.error(() -> name + ": read back differs (" + written.length + " bytes written, "
-                            + rewritten.length + " bytes after reading back). Sent: " + value + ", got: " + decoded);
+                if (!Arrays.equals(written, rewritten)) {
+                    return DataResult.error(() -> name + ": read back differs (" + written.length + " bytes written, "
+                          + rewritten.length + " bytes after reading back). Sent: " + value + ", got: " + decoded);
+                }
+                // Equal bytes only show that what was written survives. A field the codec never writes would be lost
+                // on both sides, so the decoded packet is also compared with the original field by field (records
+                // print every field; item stacks print count and item).
+                if (!describe(value).equals(describe(decoded))) {
+                    return DataResult.error(() -> name + ": decoded packet is not the one that was sent. Sent: " + value + ", got: " + decoded);
+                }
+                return DataResult.success(true);
             } catch (Exception e) {
                 return DataResult.error(() -> name + ": " + e);
             }
         });
+    }
+
+    /** Text form of a packet without object identity hashes (BlockHitResult has no toString of its own). */
+    private static String describe(Object packet) {
+        return String.valueOf(packet).replaceAll("@[0-9a-f]+", "");
     }
 
     private static <T> byte[] encode(ServerPlayer player, StreamCodec<? super RegistryFriendlyByteBuf, T> codec, T value) {

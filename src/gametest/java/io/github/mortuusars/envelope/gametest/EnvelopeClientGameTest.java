@@ -1,7 +1,6 @@
 package io.github.mortuusars.envelope.gametest;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import io.github.mortuusars.envelope.world.entity.CharredPigeon;
 import io.github.mortuusars.envelope.world.entity.CourierBat;
 import io.github.mortuusars.envelope.world.entity.Pigeon;
@@ -90,12 +89,32 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         }
     }
 
-    /** Runs every registered Bugger test (same as {@code /mortaar debug tests}) with the singleplayer player. */
+    /** Runs every registered Bugger test with {@code /mortaar debug tests}, executed as the singleplayer player. */
     private static void runBuggerTests(TestSingleplayerContext singleplayer, Path results, List<String> problems) {
         List<String> lines = singleplayer.getServer().computeOnServer(server -> {
             ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
             List<String> output = new ArrayList<>();
-            Bugger.runTests(player, message -> output.add(message.getString()));
+            // Through the real command, as the player and with the player's own permissions, so the command
+            // registration and its permission check are exercised too. Feedback goes to this capturing source.
+            net.minecraft.commands.CommandSource capture = new net.minecraft.commands.CommandSource() {
+                @Override public void sendSystemMessage(net.minecraft.network.chat.Component message) { output.add(message.getString()); }
+                @Override public boolean acceptsSuccess() { return true; }
+                @Override public boolean acceptsFailure() { return true; }
+                @Override public boolean shouldInformAdmins() { return false; }
+            };
+            // 1) With the player's own permissions. The test world has cheats off, so like any admin command this is
+            //    expected to be refused; what the game answers is recorded either way.
+            server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withSource(capture), "mortaar debug tests");
+            List<String> asPlayer = new ArrayList<>(output);
+            output.clear();
+            // 2) As the same player with operator permissions (what "cheats on" or /op gives): must run the tests.
+            server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withSource(capture)
+                  .withPermission(net.minecraft.server.permissions.PermissionSet.ALL_PERMISSIONS), "mortaar debug tests");
+            if (output.isEmpty()) {
+                output.add("The command '/mortaar debug tests' produced no output even with operator permissions.");
+            }
+            output.add("");
+            output.add("(same command as the player without operator permissions answered: " + String.join(" | ", asPlayer) + ")");
             return output;
         });
 
@@ -136,6 +155,11 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
         }
         if (envelopeOnServer != envelopeOnClient) {
             problems.add("recipe sync: server has " + envelopeOnServer + " envelope recipes, client received " + envelopeOnClient);
+        }
+        if (ITEM_MODELS_REQUIRED && onServer == 0) {
+            // Phase 4 (same switch as the item models): once the recipe JSON is converted there must be mailing recipes,
+            // otherwise "0 on both sides" would pass without testing the sync of the type JEI needs.
+            problems.add("recipe sync: no mailing recipes are loaded, the mailing comparison proves nothing");
         }
         if (envelopeOnServer == 0) {
             problems.add("recipe sync: no envelope recipes are loaded on the server, the comparison proves nothing");

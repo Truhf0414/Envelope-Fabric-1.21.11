@@ -19,7 +19,6 @@ import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffContext;
 import io.github.mortuusars.envelope.world.mail.dropoff.MailDropOffResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -53,14 +52,14 @@ public class BlockRemovalTests extends BuggerTests {
     private static final int MARKER_COUNT = 7;
 
     private enum Removal {
-        SURVIVAL_BREAK, CREATIVE_BREAK, EXPLOSION, SETBLOCK_AIR, FILL_AIR, CLONE_OVER, REPLACED_BY_BLOCK;
+        SURVIVAL_BREAK, CREATIVE_BREAK, EXPLOSION, SETBLOCK_AIR, FILL_AIR, CLONE_OVER, SETBLOCK_STRICT, REPLACED_BY_BLOCK;
 
         /**
          * Vanilla commands replace blocks without drops and without removal side effects, so the mailbox is only
          * cleaned up when mail is sent to it (D8).
          */
         boolean isCommand() {
-            return this == SETBLOCK_AIR || this == FILL_AIR || this == CLONE_OVER;
+            return this == SETBLOCK_AIR || this == FILL_AIR || this == CLONE_OVER || this == SETBLOCK_STRICT;
         }
 
         boolean dropsContents() {
@@ -209,24 +208,29 @@ public class BlockRemovalTests extends BuggerTests {
     }
 
     private static void remove(ServerPlayer player, ServerLevel level, BlockPos pos, Removal removal) {
-        MinecraftServer server = level.getServer();
-        String xyz = pos.getX() + " " + pos.getY() + " " + pos.getZ();
         switch (removal) {
             case SURVIVAL_BREAK -> breakAs(player, pos, GameType.SURVIVAL);
             case CREATIVE_BREAK -> breakAs(player, pos, GameType.CREATIVE);
             case EXPLOSION -> level.explode(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1.5f, Level.ExplosionInteraction.TNT);
-            case SETBLOCK_AIR -> server.getCommands().performPrefixedCommand(
-                  server.createCommandSourceStack().withSuppressedOutput(), "setblock " + xyz + " air");
-            case FILL_AIR -> server.getCommands().performPrefixedCommand(
-                  server.createCommandSourceStack().withSuppressedOutput(), "fill " + xyz + " " + xyz + " air");
-            case CLONE_OVER -> {
-                // Copy an air block (default "replace" mode copies air too) over the mailbox
-                BlockPos source = pos.above(2);
-                level.setBlock(source, Blocks.AIR.defaultBlockState(), 3);
-                String src = source.getX() + " " + source.getY() + " " + source.getZ();
-                server.getCommands().performPrefixedCommand(
-                      server.createCommandSourceStack().withSuppressedOutput(), "clone " + src + " " + src + " " + xyz);
+            // The command cases repeat what the vanilla commands do to the world instead of running them: this test
+            // itself runs inside a command (/mortaar debug tests), and a command started from inside another one is
+            // queued until the outer one ends, so the block would still be there when the checks run.
+            // /setblock and /fill (replace): SetBlockCommand.java:122-126, FillCommand.java:206 and :221
+            case SETBLOCK_AIR, FILL_AIR -> {
+                BlockState old = level.getBlockState(pos);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2 | 256);
+                level.updateNeighboursOnBlockSet(pos, old);
             }
+            // /clone over the position: CloneCommands.java:280-324 (barrier first, then the cloned block)
+            case CLONE_OVER -> {
+                BlockState old = level.getBlockState(pos);
+                level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), 2 | 816);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                level.updateNeighboursOnBlockSet(pos, old);
+            }
+            // /setblock ... strict: same placement without the neighbour update, so nothing unregisters the mailbox.
+            // This is the case the passive cleanup on delivery (D8) exists for.
+            case SETBLOCK_STRICT -> level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2 | 816);
             case REPLACED_BY_BLOCK -> level.setBlock(pos, Blocks.STONE.defaultBlockState(), 3);
         }
     }

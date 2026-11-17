@@ -280,7 +280,11 @@ public class TextBox extends AbstractWidget {
             int y0 = getY() + rect.getY();
             int x1 = x0 + rect.getWidth();
             int y1 = y0 + rect.getHeight();
-            guiGraphics.fill(RenderPipelines.GUI_TEXT_HIGHLIGHT, x0, y0, x1, y1, color); // 1.21.11: was RenderType.guiTextHighlight()
+            // 1.21.11: RenderType.guiTextHighlight() (color logic OR_REVERSE: result = color | ~background) is gone.
+            // Vanilla's GuiGraphics#textHighlight gets the same look in two steps: invert what is there, then add
+            // the color. Done by hand here because that method hard-codes the color.
+            guiGraphics.fill(RenderPipelines.GUI_INVERT, x0, y0, x1, y1, -1);
+            guiGraphics.fill(RenderPipelines.GUI_TEXT_HIGHLIGHT, x0, y0, x1, y1, color);
         }
     }
 

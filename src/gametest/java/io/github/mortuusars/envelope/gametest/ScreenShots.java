@@ -43,6 +43,13 @@ final class ScreenShots {
               LetterEditScreen.class, () -> {
                   context.getInput().typeChars("Dear tester, hello from 1.21.11");
                   context.waitTicks(2);
+                  context.takeScreenshot("screen_letter_edit_typed");
+                  // Select everything: the formatting toolbar only shows while text is selected. It used to be pushed
+                  // forward with a z translation; this shot shows whether anything is drawn over it now.
+                  context.getInput().holdControl();
+                  context.getInput().pressKey(GLFW.GLFW_KEY_A);
+                  context.getInput().releaseControl();
+                  context.waitTicks(3);
               });
         useItem(context, singleplayer, problems, "screen_letter_view", () -> new ItemStack(Envelope.Items.LETTER.get()),
               LetterViewScreen.class, null);
