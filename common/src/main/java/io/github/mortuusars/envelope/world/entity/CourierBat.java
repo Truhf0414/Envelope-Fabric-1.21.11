@@ -43,12 +43,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.storage.loot.LootTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.entity.EntitySpawnReason;
+import java.util.Optional;
 
 public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalCourier {
     public static final List<String> IGNORED_TAGS = Arrays.asList(
@@ -110,7 +112,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
     }
 
     public static CourierBat createService(ServerLevel level) {
-        return Objects.requireNonNull(Envelope.EntityTypes.COURIER_BAT.get().create(level),
+        return Objects.requireNonNull(Envelope.EntityTypes.COURIER_BAT.get().create(level, EntitySpawnReason.MOB_SUMMONED),
               "Failed to create an entity. This should not happen.");
     }
 
@@ -237,13 +239,11 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
 
     // -- Loot
 
-    @Override
-    protected @NotNull ResourceKey<LootTable> getDefaultLootTable() {
-        return EntityType.BAT.getDefaultLootTable();
-    }
+    // 1.21.11: the getDefaultLootTable override (bat loot table) was removed: Mob#getLootTable is final now,
+    // and shouldDropLoot always returns false, so the loot table was never used.
 
     @Override
-    protected boolean shouldDropLoot() {
+    protected boolean shouldDropLoot(ServerLevel level) { // 1.21.11: + level
         return false;
     }
 
@@ -254,8 +254,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (level().isClientSide()) return false;
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) { // 1.21.11: hurt is final; server side only
         if (isDeadOrDying()) return false;
 
         if (getRandom().nextDouble() < Config.Server.DELIVERY_COURIER_DAMAGE_EVASION_CHANCE.get()
@@ -270,7 +269,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
             return false;
         }
 
-        return super.hurt(source, amount);
+        return super.hurtServer(serverLevel, source, amount);
     }
 
     // -- Sound
@@ -329,7 +328,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
-        navigation.setCanPassDoors(true);
+        navigation.getNodeEvaluator().setCanPassDoors(true); // 1.21.11: moved to the node evaluator
         return navigation;
     }
 
@@ -435,7 +434,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
     @Override
     public void endDelivery(ServerLevel level, Delivery delivery) {
         if (!delivery.getMail().isEmpty()) {
-            spawnAtLocation(delivery.getMail().copy());
+            spawnAtLocation(level, delivery.getMail().copy());
             LOGGER.info("{} has dropped undelivered mail on the ground.", getName().getString());
             delivery.setMail(ItemStack.EMPTY);
         }
@@ -609,7 +608,7 @@ public class CourierBat extends PathfinderMob implements FlyingAnimal, PhysicalC
 
         @Override
         public void start() {
-            if (convertTo(EntityType.BAT, false) == null) {
+            if (convertTo(EntityType.BAT, ConversionParams.single(CourierBat.this, false, true), converted -> {}) == null) { // 1.21.11 signature
                 if (level() instanceof ServerLevel serverLevel) {
                     onVanished(serverLevel);
                 }

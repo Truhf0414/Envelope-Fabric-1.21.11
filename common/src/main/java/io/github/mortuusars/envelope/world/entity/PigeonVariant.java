@@ -17,13 +17,14 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.random.WeightedEntry;
-import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.biome.Biome;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.List;
 
 public record PigeonVariant(Identifier texture, HolderSet<Biome> biomes, SpawningWeights weights, boolean inheritable) {
     public static final ResourceKey<PigeonVariant> GRAY =
@@ -68,11 +69,11 @@ public record PigeonVariant(Identifier texture, HolderSet<Biome> biomes, Spawnin
     // --
 
     public static Optional<Holder.Reference<PigeonVariant>> get(RegistryAccess registries, ResourceKey<PigeonVariant> key) {
-        return registries.registryOrThrow(Envelope.Registries.PIGEON_VARIANT).getHolder(key);
+        return registries.lookupOrThrow(Envelope.Registries.PIGEON_VARIANT).get(key);
     }
 
     public static Holder<PigeonVariant> getOrThrow(RegistryAccess registries, ResourceKey<PigeonVariant> key) {
-        return registries.registryOrThrow(Envelope.Registries.PIGEON_VARIANT).getHolderOrThrow(key);
+        return registries.lookupOrThrow(Envelope.Registries.PIGEON_VARIANT).getOrThrow(key);
     }
 
     public static Holder<PigeonVariant> getRandomSpawnVariant(RegistryAccess registries, RandomSource random, Holder<Biome> biome) {
@@ -104,20 +105,19 @@ public record PigeonVariant(Identifier texture, HolderSet<Biome> biomes, Spawnin
     }
 
     public static Optional<Holder<PigeonVariant>> getRandomVariant(RegistryAccess registries, RandomSource random, Predicate<PigeonVariant> filter, Function<PigeonVariant, Integer> weightGetter) {
-        Registry<PigeonVariant> registry = registries.registryOrThrow(Envelope.Registries.PIGEON_VARIANT);
-        var variants = registry.holders()
+        Registry<PigeonVariant> registry = registries.lookupOrThrow(Envelope.Registries.PIGEON_VARIANT);
+        // 1.21.11: WeightedRandomList/WeightedEntry became WeightedList/Weighted
+        List<Weighted<Holder<PigeonVariant>>> variants = registry.listElements()
               .filter(holder -> filter.test(holder.value()))
-              .map(variant -> WeightedEntry.wrap(variant, weightGetter.apply(variant.value())))
+              .map(variant -> new Weighted<Holder<PigeonVariant>>(variant, weightGetter.apply(variant.value())))
               .toList();
-        return WeightedRandomList.create(variants)
-              .getRandom(random)
-              .map(WeightedEntry.Wrapper::data);
+        return WeightedList.of(variants).getRandom(random);
     }
 
     public static Holder<PigeonVariant> withFallback(RegistryAccess registries, Optional<Holder<PigeonVariant>> variant) {
-        Registry<PigeonVariant> registry = registries.registryOrThrow(Envelope.Registries.PIGEON_VARIANT);
+        Registry<PigeonVariant> registry = registries.lookupOrThrow(Envelope.Registries.PIGEON_VARIANT);
         return variant
-              .or(() -> registry.getHolder(DEFAULT))
+              .or(() -> registry.get(DEFAULT))
               .or(registry::getAny)
               .orElseThrow();
     }
@@ -129,7 +129,7 @@ public record PigeonVariant(Identifier texture, HolderSet<Biome> biomes, Spawnin
             case 3 -> PASSENGER;
             default -> DEFAULT;
         };
-        return key.location().toString();
+        return key.identifier().toString();
     }
 
     public record SpawningWeights(int biome, int service, int common) {

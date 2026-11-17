@@ -23,7 +23,8 @@ public class PigeonAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGo
                                  double sprintSpeedModifier, Predicate<LivingEntity> predicateOnAvoidEntity) {
         super(pigeon, entityClassToAvoid, maxDistance, walkSpeedModifier, sprintSpeedModifier, predicateOnAvoidEntity);
         this.pigeon = pigeon;
-        this.targetingConditions = TargetingConditions.forCombat().range(maxDistance).selector(predicateOnAvoidEntity.and(avoidPredicate));
+        this.targetingConditions = TargetingConditions.forCombat().range(maxDistance) // 1.21.11: Selector takes (entity, level)
+              .selector((entity, level) -> predicateOnAvoidEntity.test(entity) && avoidPredicate.test(entity));
     }
 
     public boolean isAvoiding() {
@@ -37,7 +38,7 @@ public class PigeonAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGo
             return false;
         }
 
-        toAvoid = pigeon.level().getNearestEntity(
+        toAvoid = getServerLevel(pigeon).getNearestEntity( // 1.21.11: moved to ServerEntityGetter
               pigeon.level().getEntitiesOfClass(avoidClass, pigeon.getBoundingBox().inflate(maxDist, maxDist, maxDist), entity -> true),
               targetingConditions, pigeon, pigeon.getX(), pigeon.getY(), pigeon.getZ()
         );

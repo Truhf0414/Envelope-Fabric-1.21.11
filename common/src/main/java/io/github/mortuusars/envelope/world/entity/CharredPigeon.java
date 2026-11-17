@@ -55,6 +55,8 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 
 public class CharredPigeon extends Monster implements Enemy {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -145,7 +147,7 @@ public class CharredPigeon extends Monster implements Enemy {
         goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.5, false));
         goalSelector.addGoal(5, new WanderGoal(this, 1));
         goalSelector.addGoal(8, new FloatGoal(this));
-        targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, true, arg -> Math.abs(arg.getY() - this.getY()) <= 4.0));
+        targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, true, (target, level) -> Math.abs(target.getY() - this.getY()) <= 4.0));
     }
 
     @Override
@@ -153,7 +155,7 @@ public class CharredPigeon extends Monster implements Enemy {
         FlyingPathNavigation navigation = new PigeonFlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
-        navigation.setCanPassDoors(true);
+        navigation.getNodeEvaluator().setCanPassDoors(true); // 1.21.11: moved to the node evaluator
         return navigation;
     }
 
@@ -172,7 +174,7 @@ public class CharredPigeon extends Monster implements Enemy {
             if (canConvert()) {
                 timeInSafeDimension++;
 
-                if (!isDeadOrDying() && (isInWaterOrBubble() || timeInSafeDimension > Config.Server.CHARRED_PIGEON_CONVERT_INTO_REGULAR_TICKS.get())) {
+                if (!isDeadOrDying() && (isInWater() || timeInSafeDimension > Config.Server.CHARRED_PIGEON_CONVERT_INTO_REGULAR_TICKS.get())) {
                     convert(serverLevel);
                 }
             } else {
@@ -195,18 +197,19 @@ public class CharredPigeon extends Monster implements Enemy {
     }
 
     public boolean canConvert() {
-        return !level().dimensionType().ultraWarm();
+        // 1.21.11: DimensionType#ultraWarm became the WATER_EVAPORATES environment attribute
+        return !level().environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, blockPosition());
     }
 
     public void convert(ServerLevel serverLevel) {
         ItemStack carriedMail = getCarriedMail();
-        @Nullable Pigeon pigeon = convertTo(Envelope.EntityTypes.PIGEON.get(), true);
+        @Nullable Pigeon pigeon = convertTo(Envelope.EntityTypes.PIGEON.get(), ConversionParams.single(this, true, true), converted -> {}); // 1.21.11 signature
         if (pigeon != null) {
             PigeonVariant.get(registryAccess(), PigeonVariant.CHARRED).ifPresentOrElse(pigeon::setVariant,
                   () -> LOGGER.error("Cannot set charred variant when converting to regular pigeon. Variant is not found."));
 
             if (!carriedMail.isEmpty()) {
-                spawnAtLocation(carriedMail);
+                spawnAtLocation(serverLevel, carriedMail);
                 setCarriedMail(ItemStack.EMPTY);
             }
 
@@ -257,8 +260,8 @@ public class CharredPigeon extends Monster implements Enemy {
     }
 
     @Override
-    public boolean doHurtTarget(Entity target) {
-        if (super.doHurtTarget(target)) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) { // 1.21.11: + level
+        if (super.doHurtTarget(level, target)) {
             target.igniteForSeconds((float) Config.Server.CHARRED_PIGEON_IGNITE_SECONDS.getAsDouble());
             return true;
         }
@@ -289,7 +292,7 @@ public class CharredPigeon extends Monster implements Enemy {
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
 
         if (!getCarriedMail().isEmpty()) {
-            spawnAtLocation(getCarriedMail());
+            spawnAtLocation(level, getCarriedMail());
             setCarriedMail(ItemStack.EMPTY);
         }
     }
@@ -381,7 +384,7 @@ public class CharredPigeon extends Monster implements Enemy {
 
         @Override
         protected @Nullable Vec3 getPosition() {
-            if (pigeon.isInWaterOrBubble()) {
+            if (pigeon.isInWater()) { // 1.21.11: isInWaterOrBubble removed
                 @Nullable Vec3 pos = LandRandomPos.getPos(pigeon, 15, 15);
                 if (pos != null) {
                     return pos;

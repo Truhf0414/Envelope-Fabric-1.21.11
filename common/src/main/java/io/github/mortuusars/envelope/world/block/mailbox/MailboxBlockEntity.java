@@ -420,7 +420,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
         List<Bat> batsNearby = level.getEntitiesOfClass(Bat.class, new AABB(pos).inflate(32), b -> !b.isDeadOrDying() && !b.isRemoved());
         if (!batsNearby.isEmpty()) {
             Bat regularBat = Util.getRandom(batsNearby, level.getRandom());
-            @Nullable CourierBat courierBat = regularBat.convertTo(Envelope.EntityTypes.COURIER_BAT.get(), ConversionParams.single(regularBat, false, false), converted -> {}); // 1.21.11 signature
+            @Nullable CourierBat courierBat = regularBat.convertTo(Envelope.EntityTypes.COURIER_BAT.get(), ConversionParams.single(regularBat, false, true), converted -> {}); // 1.21.11 signature
             if (courierBat != null) {
                 courierBat.setOrigin(CourierOrigin.regular(pos));
                 bat = courierBat;

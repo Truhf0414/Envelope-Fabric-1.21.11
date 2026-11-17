@@ -48,9 +48,9 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.ZombieVillager;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.monster.zombie.ZombieVillager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -67,8 +67,16 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.Predicate;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.feline.Ocelot;
+import net.minecraft.world.entity.animal.fox.Fox;
 
-public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant>>, FlyingAnimal, PhysicalCourier {
+// 1.21.11: VariantHolder was removed; getVariant/setVariant stay as plain methods. Consumable.OverrideConsumeSound replaces getEatingSound.
+public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Consumable.OverrideConsumeSound {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final List<String> IGNORED_TAGS = Arrays.asList(
@@ -116,7 +124,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
           && Config.Server.VILLAGER_FEEDING_PIGEONS.get()
           && mob instanceof Villager villager
           && (!Config.Server.VILLAGER_FEEDING_PIGEONS_NITWIT_ONLY.get()
-          || villager.getVillagerData().getProfession() == VillagerProfession.NITWIT)
+          || villager.getVillagerData().profession().is(VillagerProfession.NITWIT))
           && mob.getRandom().nextInt(60) == 0;
 
     private static final EntityDataAccessor<Holder<PigeonVariant>> DATA_VARIANT = SynchedEntityData.defineId(Pigeon.class, Envelope.EntityDataSerializers.PIGEON_VARIANT.get());
@@ -161,7 +169,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     public static Pigeon createService(ServerLevel level) {
-        Pigeon pigeon = Objects.requireNonNull(Envelope.EntityTypes.PIGEON.get().create(level),
+        Pigeon pigeon = Objects.requireNonNull(Envelope.EntityTypes.PIGEON.get().create(level, EntitySpawnReason.MOB_SUMMONED),
               "Failed to create an entity. This should not happen.");
         pigeon.setVariant(PigeonVariant.getRandomServiceVariant(level.registryAccess(), level.getRandom()));
         pigeon.setOrigin(CourierOrigin.service());
@@ -172,7 +180,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
         RandomSource random = level.getRandom();
         if (random.nextDouble() >= Config.Server.PIGEON_GHOST_CHANCE.get()
               || level.isBrightOutside()
-              || level.getMoonBrightness() <= 0.9F) {
+              || level.getMoonBrightness(zombieVillager.blockPosition()) <= 0.9F) { // 1.21.11: position-dependent
             return;
         }
 
@@ -189,8 +197,8 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
                   .ifPresent(pigeon::setVariant);
             Vec3 pos = pigeon.position();
             for (ServerPlayer player : level.players()) {
-                level.sendParticles(player, new DustParticleOptions(Vec3.fromRGB24(0xFF4eff63).toVector3f(), 2f),
-                      true, pos.x(), pos.y() + 0.25f, pos.z(), 10, 0.5, 0.5, 0.5, 0);
+                level.sendParticles(player, new DustParticleOptions(0xFF4eff63, 2f),
+                      true, false, pos.x(), pos.y() + 0.25f, pos.z(), 10, 0.5, 0.5, 0.5, 0);
             }
             LOGGER.debug("Spawned ghost pigeon at [{}]", spawnPos);
         }
@@ -264,7 +272,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
         FlyingPathNavigation navigation = new PigeonFlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
-        navigation.setCanPassDoors(true);
+        navigation.getNodeEvaluator().setCanPassDoors(true); // 1.21.11: moved to the node evaluator
         return navigation;
     }
 
@@ -274,7 +282,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
         this.calculateFlapping();
 
         if (getVariant().is(PigeonVariant.GHOST) && level().getRandom().nextInt(10) == 0) {
-            level().addParticle(new DustParticleOptions(Vec3.fromRGB24(0xFF4eff63).toVector3f(), 1f),
+            level().addParticle(new DustParticleOptions(0xFF4eff63, 1f),
                   position().x + getRandom().nextFloat() * 0.6f - 0.3f,
                   position().y + getRandom().nextFloat() * 0.6f - 0.1f,
                   position().z + getRandom().nextFloat() * 0.6f - 0.3f, 0, 0, 0);
@@ -311,7 +319,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
                     serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, mainHandItem),
                           position().x, position().y + 0.3, position().z, 5, 0.25, 0.25, 0.25, 0);
                 }
-                playSound(getEatingSound(mainHandItem), 0.5f, getRandom().nextFloat() * 0.2f + 0.9f);
+                playSound(getConsumeSound(mainHandItem), 0.5f, getRandom().nextFloat() * 0.2f + 0.9f);
             }
 
             if (getEatingTicks() >= 10) {
@@ -336,12 +344,13 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     public boolean canConvert() {
-        return level().dimensionType().ultraWarm() && !isNoAi();
+        // 1.21.11: DimensionType#ultraWarm became the WATER_EVAPORATES environment attribute
+        return level().environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, blockPosition()) && !isNoAi();
     }
 
     protected void convert(ServerLevel serverLevel) {
         ItemStack carriedMail = getCurrentDelivery().map(Delivery::getMail).orElse(ItemStack.EMPTY);
-        @Nullable CharredPigeon charredPigeon = convertTo(Envelope.EntityTypes.CHARRED_PIGEON.get(), true);
+        @Nullable CharredPigeon charredPigeon = convertTo(Envelope.EntityTypes.CHARRED_PIGEON.get(), ConversionParams.single(this, true, true), converted -> {}); // 1.21.11 signature
         if (charredPigeon != null) {
             charredPigeon.setCarriedMail(carriedMail);
             charredPigeon.setDeltaMovement(getDeltaMovement());
@@ -404,7 +413,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     @Override
-    public boolean wantsToPickUp(ItemStack stack) {
+    public boolean wantsToPickUp(ServerLevel level, ItemStack stack) { // 1.21.11: + level
         return Config.Server.PIGEON_EATS_SEEDS.get()
               && onGround()
               && getMainHandItem().isEmpty()
@@ -413,24 +422,19 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     @Override
-    public boolean canTakeItem(ItemStack stack) {
-        return wantsToPickUp(stack);
-    }
-
-    @Override
     public boolean canHoldItem(ItemStack stack) {
-        return wantsToPickUp(stack);
+        return level() instanceof ServerLevel serverLevel && wantsToPickUp(serverLevel, stack);
     }
 
     @Override
-    protected void pickUpItem(ItemEntity itemEntity) {
+    protected void pickUpItem(ServerLevel level, ItemEntity itemEntity) { // 1.21.11: + level
         if (getRandom().nextInt(10) != 0) {
             return;
         }
         ItemStack item = itemEntity.getItem();
         if (itemEntity.onGround() && distanceTo(itemEntity) < 1 && canHoldItem(item)) {
             if (item.getCount() > 1) {
-                spawnAtLocation(item.split(item.getCount() - 1));
+                spawnAtLocation(level, item.split(item.getCount() - 1));
             }
 
             onItemPickup(itemEntity);
@@ -442,8 +446,8 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     @Override
-    protected boolean shouldDropLoot() {
-        return super.shouldDropLoot() && (origin == null || !origin.isService());
+    protected boolean shouldDropLoot(ServerLevel level) { // 1.21.11: + level
+        return super.shouldDropLoot(level) && (origin == null || !origin.isService());
     }
 
     @Override
@@ -520,7 +524,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel level, AgeableMob otherParent) {
-        @Nullable Pigeon offspring = Envelope.EntityTypes.PIGEON.get().create(level);
+        @Nullable Pigeon offspring = Envelope.EntityTypes.PIGEON.get().create(level, EntitySpawnReason.BREEDING);
         if (offspring != null && otherParent instanceof Pigeon otherPigeon) {
             Holder<PigeonVariant> variant = getRandom().nextBoolean() ? this.getVariant() : otherPigeon.getVariant();
             if (!variant.value().inheritable()) {
@@ -538,8 +542,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (level().isClientSide()) return false;
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) { // 1.21.11: hurt is final; server side only
         if (isDeadOrDying()) return false;
 
         if (getRandom().nextDouble() < Config.Server.DELIVERY_COURIER_DAMAGE_EVASION_CHANCE.get()
@@ -554,7 +557,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
             return false;
         }
 
-        return super.hurt(source, amount);
+        return super.hurtServer(serverLevel, source, amount);
     }
 
     @Override
@@ -649,7 +652,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     }
 
     @Override
-    public @NotNull SoundEvent getEatingSound(ItemStack stack) {
+    public @NotNull SoundEvent getConsumeSound(ItemStack stack) { // 1.21.11: was getEatingSound
         return Envelope.SoundEvents.PIGEON_EAT.get();
     }
 
@@ -786,7 +789,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
     @Override
     public void endDelivery(ServerLevel level, Delivery delivery) {
         if (!delivery.getMail().isEmpty()) {
-            spawnAtLocation(delivery.getMail().copy());
+            spawnAtLocation(level, delivery.getMail().copy());
             Pigeon.LOGGER.info("{} has dropped undelivered mail on the ground.", getName().getString());
             delivery.setMail(ItemStack.EMPTY);
         }

@@ -34,7 +34,7 @@ public abstract class AbstractGoToBlockGoal extends Goal {
     public boolean canUse() {
         @Nullable BlockPos pos = getBlockPos();
         return pos != null
-              && !courier.asEntity().hasRestriction()
+              && !courier.asEntity().hasHome() // 1.21.11: hasRestriction -> hasHome
               && !courier.hasReachedTarget(pos)
               && !Position.isFireNearby(courier.asEntity().level(), pos);
     }

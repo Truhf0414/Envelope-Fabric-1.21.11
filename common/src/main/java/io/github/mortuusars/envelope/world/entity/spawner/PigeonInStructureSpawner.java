@@ -26,9 +26,14 @@ public class PigeonInStructureSpawner implements CustomSpawner {
     protected static final int SPAWN_ATTEMPT_DELAY = 1000;
     protected int nextAttemptDelay;
 
+    // 1.21.11: CustomSpawner#tick is void and no longer receives spawnFriendlies (vanilla friendly spawners such as CatSpawner don't check it)
     @Override
-    public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
-        if (!spawnFriendlies || !level.getGameRules().get(GameRules.SPAWN_MOBS)) {
+    public void tick(ServerLevel level, boolean spawnEnemies) {
+        tryTick(level);
+    }
+
+    protected int tryTick(ServerLevel level) {
+        if (!level.getGameRules().get(GameRules.SPAWN_MOBS)) {
             return 0;
         }
 
@@ -88,7 +93,7 @@ public class PigeonInStructureSpawner implements CustomSpawner {
     }
 
     protected int spawn(ServerLevel level, BlockPos pos) {
-        @Nullable Pigeon pigeon = Envelope.EntityTypes.PIGEON.get().create(level);
+        @Nullable Pigeon pigeon = Envelope.EntityTypes.PIGEON.get().create(level, EntitySpawnReason.NATURAL);
         if (pigeon == null) {
             return 0;
         }

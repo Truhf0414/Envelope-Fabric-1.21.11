@@ -6,9 +6,9 @@ import io.github.mortuusars.envelope.world.VillagerPigeonFeeding;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ReputationEventHandler;
-import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerDataHolder;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerDataHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.server.level.ServerLevel;
 
 @Mixin(Villager.class)
 public abstract class VillagerMixin extends AbstractVillager
@@ -36,7 +37,7 @@ public abstract class VillagerMixin extends AbstractVillager
     }
 
     @Inject(method = "customServerAiStep", at = @At("RETURN"))
-    private void onCustomServerAiStep(CallbackInfo ci) {
+    private void onCustomServerAiStep(ServerLevel serverLevel, CallbackInfo ci) { // 1.21.11: target takes ServerLevel
         Villager villager = ((Villager) (Object) this);
 
         if (envelope$pigeonFoodPickupDelay > 0) envelope$pigeonFoodPickupDelay--;
@@ -50,7 +51,7 @@ public abstract class VillagerMixin extends AbstractVillager
     }
 
     @Inject(method = "wantsToPickUp", at = @At("HEAD"), cancellable = true)
-    private void wantsToPickUp(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+    private void wantsToPickUp(ServerLevel serverLevel, ItemStack stack, CallbackInfoReturnable<Boolean> cir) { // 1.21.11: target takes ServerLevel
         if (envelope$pigeonFoodPickupDelay > 0 && stack.is(Envelope.Tags.Items.PIGEON_FOOD)) {
             cir.setReturnValue(false);
         }
