@@ -9,8 +9,6 @@ import io.github.mortuusars.envelope.advancements.predicate.ItemPackagePredicate
 import io.github.mortuusars.envelope.api.ServiceDropOffHandlerRegistry;
 import io.github.mortuusars.envelope.command.argument.AddressArgument;
 import io.github.mortuusars.envelope.command.argument.SealLockArgument;
-import io.github.mortuusars.envelope.integration.Mods;
-import io.github.mortuusars.envelope.integration.every_compat.EveryCompatIntegration;
 import io.github.mortuusars.envelope.network.packet.clientbound.*;
 import io.github.mortuusars.envelope.network.packet.serverbound.*;
 import io.github.mortuusars.envelope.test.cases.EnvelopeBuggerTests;
@@ -143,10 +141,6 @@ public class Envelope {
         Register.clientboundPacket(ClientboundSyncDeathLockDataPacket.TYPE, ClientboundSyncDeathLockDataPacket.STREAM_CODEC);
 
         ServiceDropOffHandlerRegistry.register(ServiceAddress.CLOUD_DEPOSITORY, CloudDepository::handleDropOff);
-
-        if (Mods.EVERY_COMPAT.isLoaded()) {
-            EveryCompatIntegration.init();
-        }
 
         Bugger.addTests(EnvelopeBuggerTests::create);
     }

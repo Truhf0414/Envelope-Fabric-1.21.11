@@ -20,7 +20,6 @@
     "predators.CatMixin",
     "predators.FoxMixin",
     "predators.OcelotMixin",
-    "sable_compat.MailboxBlockMixin",
     "shears_clearing.ItemStackMixin",
     "shears_clearing.ShearsItemMixin",
     "spawners.MinecraftServerMixin",

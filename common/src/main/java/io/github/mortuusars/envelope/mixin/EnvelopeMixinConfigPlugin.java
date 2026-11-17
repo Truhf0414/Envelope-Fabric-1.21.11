@@ -2,7 +2,6 @@ package io.github.mortuusars.envelope.mixin;
 
 import com.google.common.collect.ImmutableMap;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
-import io.github.mortuusars.envelope.lib.mortaar.Platform;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -13,10 +12,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class EnvelopeMixinConfigPlugin implements IMixinConfigPlugin {
-    private static final Map<String, Supplier<Boolean>> CONDITIONS = ImmutableMap.of(
-          "io.github.mortuusars.envelope.mixin.sable_compat.MailboxBlockMixin",
-          () -> Platform.isModLoading("sable")
-    );
+    // Port: the only conditional mixin (sable_compat) was removed; Sable has no 1.21.11 release.
+    private static final Map<String, Supplier<Boolean>> CONDITIONS = ImmutableMap.of();
 
     @Override
     public void onLoad(String mixinPackage) {
