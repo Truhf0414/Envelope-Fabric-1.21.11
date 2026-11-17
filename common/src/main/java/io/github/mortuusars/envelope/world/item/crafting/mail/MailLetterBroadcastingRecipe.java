@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class MailLetterBroadcastingRecipe extends CustomMailRecipe {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -57,7 +56,7 @@ public class MailLetterBroadcastingRecipe extends CustomMailRecipe {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<MailLetterBroadcastingRecipe> getSerializer() {
         return Envelope.RecipeSerializers.MAIL_LETTER_BROADCASTING.get();
     }
 
@@ -178,11 +177,8 @@ public class MailLetterBroadcastingRecipe extends CustomMailRecipe {
 
         public static final StreamCodec<RegistryFriendlyByteBuf, MailLetterBroadcastingRecipe> STREAM_CODEC = StreamCodec.composite(
               ServiceAddress.STREAM_CODEC, MailLetterBroadcastingRecipe::getAddress,
-              Ingredient.CONTENTS_STREAM_CODEC
-                    .apply(ByteBufCodecs.list(PackageContents.SLOTS))
-                    .map(list ->
-                                NonNullList.of(Ingredient.EMPTY, list.toArray(Ingredient[]::new)),
-                          Function.identity()), MailLetterBroadcastingRecipe::getIngredients,
+              // 1.21.11: Ingredient.EMPTY removed; decode straight into a NonNullList
+              ByteBufCodecs.collection(NonNullList::createWithCapacity, Ingredient.CONTENTS_STREAM_CODEC, PackageContents.SLOTS), MailLetterBroadcastingRecipe::getIngredients,
               MailLetterBroadcastingRecipe::new
         );
 

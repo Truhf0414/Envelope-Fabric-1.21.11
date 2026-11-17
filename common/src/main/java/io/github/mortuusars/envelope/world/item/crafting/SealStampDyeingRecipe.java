@@ -108,12 +108,7 @@ public class SealStampDyeingRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<SealStampDyeingRecipe> getSerializer() {
         return Envelope.RecipeSerializers.SEAL_STAMP_DYEING.get();
     }
 }

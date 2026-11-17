@@ -24,7 +24,7 @@ public class ComponentTransferringRecipe extends CustomRecipe {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<ComponentTransferringRecipe> getSerializer() {
         return Envelope.RecipeSerializers.COMPONENT_TRANSFERRING.get();
     }
 
@@ -32,12 +32,11 @@ public class ComponentTransferringRecipe extends CustomRecipe {
         return sourceIngredient;
     }
 
-    @Override
+    // 1.21.11: getIngredients/getResultItem are no longer Recipe methods; kept for the serializer and JEI.
     public @NotNull NonNullList<Ingredient> getIngredients() {
         return ingredients;
     }
 
-    @Override
     public @NotNull ItemStack getResultItem(HolderLookup.Provider registries) {
         return getResult();
     }
@@ -95,8 +94,4 @@ public class ComponentTransferringRecipe extends CustomRecipe {
         return recipeResultStack;
     }
 
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return ingredients.size() <= width * height;
-    }
 }

@@ -10,6 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.NotNull;
+import java.util.List;
 
 public class ComponentTransferringRecipeSerializer<T extends ComponentTransferringRecipe> implements RecipeSerializer<T> {
     private final MapCodec<T> codec;
@@ -32,8 +33,8 @@ public class ComponentTransferringRecipeSerializer<T extends ComponentTransferri
         return RecordCodecBuilder.mapCodec(
                 instance -> instance.group(
                         CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(CraftingRecipe::category),
-                        Ingredient.CODEC_NONEMPTY.fieldOf(sourceIngredientName).forGetter(ComponentTransferringRecipe::getSourceIngredient),
-                        Ingredient.CODEC_NONEMPTY
+                        Ingredient.CODEC.fieldOf(sourceIngredientName) /* 1.21.11: CODEC is non-empty; CODEC_NONEMPTY removed */.forGetter(ComponentTransferringRecipe::getSourceIngredient),
+                        Ingredient.CODEC
                                 .listOf()
                                 .fieldOf("ingredients")
                                 .flatXmap(
@@ -43,7 +44,7 @@ public class ComponentTransferringRecipeSerializer<T extends ComponentTransferri
                                             } else {
                                                 return list.size() > 9
                                                         ? DataResult.error(() -> ("Too many ingredients for %s recipe. Maximum is: %s".formatted(9, recipeTypeName)))
-                                                        : DataResult.success(NonNullList.of(Ingredient.EMPTY, list.toArray(new Ingredient[0])));
+                                                        : DataResult.success(toNonNullList(list));
                                             }
                                         },
                                         DataResult::success
@@ -61,6 +62,13 @@ public class ComponentTransferringRecipeSerializer<T extends ComponentTransferri
                 ByteBufCodecs.collection(NonNullList::createWithCapacity, Ingredient.CONTENTS_STREAM_CODEC), ComponentTransferringRecipe::getIngredients,
                 ItemStack.STREAM_CODEC, ComponentTransferringRecipe::getResult,
                 constructor::create);
+    }
+
+    // 1.21.11: Ingredient.EMPTY no longer exists, so the list cannot be built with NonNullList.of(EMPTY, ...).
+    private static NonNullList<Ingredient> toNonNullList(List<Ingredient> ingredients) {
+        NonNullList<Ingredient> list = NonNullList.create();
+        list.addAll(ingredients);
+        return list;
     }
 
     @Override

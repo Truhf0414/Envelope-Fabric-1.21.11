@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class MailPaybackRequestCancelingRecipe extends CustomMailRecipe {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -50,7 +49,7 @@ public class MailPaybackRequestCancelingRecipe extends CustomMailRecipe {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<MailPaybackRequestCancelingRecipe> getSerializer() {
         return Envelope.RecipeSerializers.MAIL_PAYBACK_REQUEST_CANCELING.get();
     }
 
@@ -112,11 +111,8 @@ public class MailPaybackRequestCancelingRecipe extends CustomMailRecipe {
 
         public static final StreamCodec<RegistryFriendlyByteBuf, MailPaybackRequestCancelingRecipe> STREAM_CODEC = StreamCodec.composite(
               ServiceAddress.STREAM_CODEC, MailPaybackRequestCancelingRecipe::getAddress,
-              Ingredient.CONTENTS_STREAM_CODEC
-                    .apply(ByteBufCodecs.list(PackageContents.SLOTS))
-                    .map(list ->
-                                NonNullList.of(Ingredient.EMPTY, list.toArray(Ingredient[]::new)),
-                          Function.identity()), MailPaybackRequestCancelingRecipe::getIngredients,
+              // 1.21.11: Ingredient.EMPTY removed; decode straight into a NonNullList
+              ByteBufCodecs.collection(NonNullList::createWithCapacity, Ingredient.CONTENTS_STREAM_CODEC, PackageContents.SLOTS), MailPaybackRequestCancelingRecipe::getIngredients,
               MailPaybackRequestCancelingRecipe::new
         );
 

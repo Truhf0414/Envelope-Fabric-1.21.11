@@ -7,7 +7,6 @@ import io.github.mortuusars.envelope.world.item.mail.Mail;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -15,7 +14,6 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LetterCloningRecipe extends CustomRecipe {
 	public LetterCloningRecipe(CraftingBookCategory category) {
@@ -87,9 +85,9 @@ public class LetterCloningRecipe extends CustomRecipe {
 
 		for (int i = 0; i < items.size(); i++) {
 			ItemStack stack = input.getItem(i);
-			@Nullable Item remainingItem = stack.getItem().getCraftingRemainingItem();
-			if (remainingItem != null) {
-				items.set(i, new ItemStack(remainingItem));
+			ItemStack remainingItem = stack.getItem().getCraftingRemainder(); // 1.21.11: returns an ItemStack (EMPTY when none)
+			if (!remainingItem.isEmpty()) {
+				items.set(i, remainingItem);
 			} else if (stack.getItem() instanceof LetterItem) {
 				items.set(i, stack.copyWithCount(1));
 				break;
@@ -100,12 +98,8 @@ public class LetterCloningRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public @NotNull RecipeSerializer<?> getSerializer() {
+	public @NotNull RecipeSerializer<LetterCloningRecipe> getSerializer() {
 		return Envelope.RecipeSerializers.LETTER_CLONING.get();
 	}
 
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width >= 3 && height >= 3;
-	}
 }

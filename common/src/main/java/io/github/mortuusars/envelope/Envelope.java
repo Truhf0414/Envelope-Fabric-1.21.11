@@ -77,7 +77,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -545,13 +545,13 @@ public class Envelope {
 
     public static class RecipeSerializers {
         public static final Supplier<RecipeSerializer<LetterCloningRecipe>> LETTER_CLONING = REGISTRAR.recipeSerializer(
-              "crafting_special_letter_cloning", () -> new SimpleCraftingRecipeSerializer<>(LetterCloningRecipe::new));
+              "crafting_special_letter_cloning", () -> new CustomRecipe.Serializer<>(LetterCloningRecipe::new));
         public static final Supplier<RecipeSerializer<AddressTagApplicationRecipe>> ADDRESS_TAG_APPLICATION = REGISTRAR.recipeSerializer(
-              "crafting_special_address_tag_application", () -> new SimpleCraftingRecipeSerializer<>(AddressTagApplicationRecipe::new));
+              "crafting_special_address_tag_application", () -> new CustomRecipe.Serializer<>(AddressTagApplicationRecipe::new));
         public static final Supplier<RecipeSerializer<PaybackTagApplicationRecipe>> PAYBACK_TAG_APPLICATION = REGISTRAR.recipeSerializer(
-              "crafting_special_payback_tag_application", () -> new SimpleCraftingRecipeSerializer<>(PaybackTagApplicationRecipe::new));
+              "crafting_special_payback_tag_application", () -> new CustomRecipe.Serializer<>(PaybackTagApplicationRecipe::new));
         public static final Supplier<RecipeSerializer<SealStampDyeingRecipe>> SEAL_STAMP_DYEING = REGISTRAR.recipeSerializer(
-              "crafting_special_seal_stamp_dyeing", () -> new SimpleCraftingRecipeSerializer<>(SealStampDyeingRecipe::new));
+              "crafting_special_seal_stamp_dyeing", () -> new CustomRecipe.Serializer<>(SealStampDyeingRecipe::new));
 
         public static final Supplier<RecipeSerializer<ComponentTransferringRecipe>> COMPONENT_TRANSFERRING = REGISTRAR.recipeSerializer(
                     "component_transferring", () -> new ComponentTransferringRecipeSerializer<>(ComponentTransferringRecipe::new));

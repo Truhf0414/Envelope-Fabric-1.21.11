@@ -17,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
 
 public class MailRecipeSerializer<T extends MailCraftingRecipe> implements RecipeSerializer<T> {
     private final MapCodec<T> codec;
@@ -41,11 +40,8 @@ public class MailRecipeSerializer<T extends MailCraftingRecipe> implements Recip
 
         this.streamCodec = StreamCodec.composite(
               ServiceAddress.STREAM_CODEC, MailCraftingRecipe::getAddress,
-              Ingredient.CONTENTS_STREAM_CODEC
-                    .apply(ByteBufCodecs.list(PackageContents.SLOTS))
-                    .map(list ->
-                                NonNullList.of(Ingredient.EMPTY, list.toArray(Ingredient[]::new)),
-                          Function.identity()), MailCraftingRecipe::getIngredients,
+              // 1.21.11: Ingredient.EMPTY removed; decode straight into a NonNullList
+              ByteBufCodecs.collection(NonNullList::createWithCapacity, Ingredient.CONTENTS_STREAM_CODEC, PackageContents.SLOTS), MailCraftingRecipe::getIngredients,
               ItemStack.STREAM_CODEC, MailCraftingRecipe::getResult,
               ByteBufCodecs.FLOAT, MailCraftingRecipe::getExperience,
               constructor::create

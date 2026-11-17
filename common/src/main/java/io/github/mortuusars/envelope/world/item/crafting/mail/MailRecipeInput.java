@@ -4,7 +4,7 @@ import io.github.mortuusars.envelope.world.item.component.PackageContents;
 import io.github.mortuusars.envelope.world.mail.MailService;
 import io.github.mortuusars.envelope.world.mail.address.Address;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ public class MailRecipeInput implements RecipeInput {
     private final MailService service;
     private final Address sender;
     private final List<ItemStack> items;
-    private StackedContents stackedContents;
+    private StackedItemContents stackedContents;
     private int ingredientCount;
 
     public MailRecipeInput(MailService service, Address sender, List<ItemStack> items) {
@@ -31,7 +31,7 @@ public class MailRecipeInput implements RecipeInput {
     }
 
     private void updateIngredients() {
-        stackedContents = new StackedContents();
+        stackedContents = new StackedItemContents(); // 1.21.11: item-specific StackedContents
         int i = 0;
         for (ItemStack itemStack : items) {
             if (!itemStack.isEmpty()) {
@@ -75,7 +75,7 @@ public class MailRecipeInput implements RecipeInput {
         return items.size();
     }
 
-    public StackedContents stackedContents() {
+    public StackedItemContents stackedContents() {
         return stackedContents;
     }
 

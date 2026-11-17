@@ -1,25 +1,52 @@
 package io.github.mortuusars.envelope.world.item.crafting.mail;
 
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.envelope.world.item.component.PackageContents;
 import io.github.mortuusars.envelope.world.mail.address.type.ServiceAddress;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+// 1.21.11: Recipe no longer exposes ingredients/result (getIngredients, getResultItem, canCraftInDimensions,
+// getToastSymbol, getRemainingItems were removed in 1.21.2). Mail recipes keep ingredients and result as their own API,
+// because mail crafting, the Equine Assurance Bureau and JEI read them.
 public interface MailRecipe extends Recipe<MailRecipeInput> {
     ServiceAddress getAddress();
 
+    NonNullList<Ingredient> getIngredients();
+
+    ItemStack getResultItem(HolderLookup.Provider registries);
+
     @Override
-    default @NotNull RecipeType<?> getType() {
+    RecipeSerializer<? extends MailRecipe> getSerializer();
+
+    @Override
+    default @NotNull RecipeType<MailRecipe> getType() {
         return Envelope.RecipeTypes.MAILING.get();
+    }
+
+    // Mail recipes are special (never in the recipe book), so nothing reads placement info or the book category:
+    // RecipeManager only uses recipeBookCategory() for recipes that return a display() entry, and display() is empty.
+    @Override
+    default @NotNull PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
+    }
+
+    @Override
+    default @NotNull RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
@@ -37,16 +64,6 @@ public interface MailRecipe extends Recipe<MailRecipeInput> {
 
     default Optional<Component> getInfo() {
         return Optional.empty();
-    }
-
-    @Override
-    default @NotNull ItemStack getToastSymbol() {
-        return new ItemStack(Envelope.Blocks.PACKAGE.get());
-    }
-
-    @Override
-    default boolean canCraftInDimensions(int width, int height) {
-        return width * height >= PackageContents.SLOTS;
     }
 
     default float getExperience() {
@@ -72,7 +89,7 @@ public interface MailRecipe extends Recipe<MailRecipeInput> {
         }
         return input.size() == 1 && getIngredients().size() == 1
               ? getIngredients().getFirst().test(input.getItem(0))
-              : input.stackedContents().canCraft(this, null);
+              : input.stackedContents().canCraft(getIngredients(), null); // 1.21.11: canCraft(Recipe) reads placementInfo, which mail recipes don't have
     }
 
     /**
@@ -91,5 +108,16 @@ public interface MailRecipe extends Recipe<MailRecipeInput> {
      */
     default @NotNull ItemStack assembleWithSideEffects(MailRecipeInput input, HolderLookup.Provider registries) {
         return assemble(input, registries);
+    }
+
+    /**
+     * 1.21.11: Recipe#getRemainingItems was removed. Same behaviour as the old default: each input item leaves its crafting remainder.
+     */
+    default NonNullList<ItemStack> getRemainingItems(MailRecipeInput input) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(input.size(), ItemStack.EMPTY);
+        for (int i = 0; i < remaining.size(); i++) {
+            remaining.set(i, input.getItem(i).getItem().getCraftingRemainder());
+        }
+        return remaining;
     }
 }

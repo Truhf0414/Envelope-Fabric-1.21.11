@@ -70,12 +70,7 @@ public class PaybackTagApplicationRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<PaybackTagApplicationRecipe> getSerializer() {
         return Envelope.RecipeSerializers.PAYBACK_TAG_APPLICATION.get();
     }
 }

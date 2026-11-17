@@ -7,6 +7,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 
 public class MailCraftingRecipeBuilder extends MailRecipeBuilder {
     private final NonNullList<Ingredient> ingredients = NonNullList.create();
@@ -56,6 +58,6 @@ public class MailCraftingRecipeBuilder extends MailRecipeBuilder {
 
     public void save(RecipeOutput output, Identifier id) {
         MailCraftingRecipe recipe = new MailCraftingRecipe(getAddress(), ingredients, result, experience);
-        output.accept(id, recipe, null);
+        output.accept(ResourceKey.create(Registries.RECIPE, id), recipe, null); // 1.21.11: recipes are keyed by ResourceKey
     }
 }

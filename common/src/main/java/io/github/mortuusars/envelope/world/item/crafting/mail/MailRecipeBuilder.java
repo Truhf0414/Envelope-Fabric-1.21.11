@@ -43,7 +43,7 @@ public abstract class MailRecipeBuilder {
 
     public static String getDefaultPath(ServiceAddress address, String name) {
         String addressStr = address.getDefinitionHolder().unwrapKey()
-              .map(key -> key.location().getPath())
+              .map(key -> key.identifier().getPath())
               .orElseThrow();
         return "mailing/" + addressStr + "/" + name;
     }

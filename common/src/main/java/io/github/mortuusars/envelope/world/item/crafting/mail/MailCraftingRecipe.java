@@ -47,7 +47,7 @@ public class MailCraftingRecipe implements MailRecipe {
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<MailCraftingRecipe> getSerializer() {
         return Envelope.RecipeSerializers.MAIL_CRAFTING.get();
     }
 

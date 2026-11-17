@@ -28,8 +28,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-import java.util.Arrays;
 import java.util.Optional;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 
 public class EquineAssuranceBureau {
     private static final Identifier RECIPE_ID = ServiceAddress.EQUINE_ASSURANCE_BUREAU.identifier()
@@ -51,7 +52,7 @@ public class EquineAssuranceBureau {
         }
 
         Optional<RecipeHolder<MailRecipe>> recipe = Mailing.getAllRecipesOf(bureauAddress.get(), player.level())
-              .filter(recipeHolder -> recipeHolder.id().equals(RECIPE_ID))
+              .filter(recipeHolder -> recipeHolder.id().identifier().equals(RECIPE_ID)) // 1.21.11: id() is a ResourceKey; comparing it to an Identifier is always false
               .findFirst();
         if (recipe.isEmpty()) {
             return;
@@ -127,9 +128,11 @@ public class EquineAssuranceBureau {
     }
 
     private static boolean isCarryingRecipeResult(MailDropOffContext context, MailDropOffResult craftingResult) {
-        ItemStack expectedResult = context.getService().getLevel().getRecipeManager()
-              .byKey(RECIPE_ID)
-              .map(holder -> holder.value().getResultItem(context.getService().getLevel().registryAccess()))
+        // 1.21.11: RecipeManager is reached via recipeAccess() and keyed by ResourceKey; getResultItem is MailRecipe's own method
+        ItemStack expectedResult = context.getService().getLevel().recipeAccess()
+              .byKey(ResourceKey.create(Registries.RECIPE, RECIPE_ID))
+              .filter(holder -> holder.value() instanceof MailRecipe)
+              .map(holder -> ((MailRecipe) holder.value()).getResultItem(context.getService().getLevel().registryAccess()))
               .orElse(new ItemStack(Items.BARRIER));
 
         ItemStack actualResult = craftingResult.getMail()
@@ -142,7 +145,7 @@ public class EquineAssuranceBureau {
     public static ItemStack createLetter(ServerLevel level) {
         Optional<RecipeHolder<MailRecipe>> recipe = ServiceAddress.get(ServiceAddress.EQUINE_ASSURANCE_BUREAU, level.registryAccess())
               .flatMap(address -> Mailing.getAllRecipesOf(address, level)
-                    .filter(recipeHolder -> recipeHolder.id().equals(RECIPE_ID))
+                    .filter(recipeHolder -> recipeHolder.id().identifier().equals(RECIPE_ID)) // 1.21.11: id() is a ResourceKey; comparing it to an Identifier is always false
                     .findFirst());
 
         if (recipe.isEmpty()) {
@@ -152,7 +155,7 @@ public class EquineAssuranceBureau {
         SimpleContainer inputContainer = new SimpleContainer(PackageContents.SLOTS);
 
         recipe.get().value().getIngredients().stream()
-              .map(i -> Arrays.stream(i.getItems()).findFirst())
+              .map(i -> i.items().findFirst().map(ItemStack::new)) // 1.21.11: Ingredient#getItems -> items() (holders)
               .filter(Optional::isPresent)
               .forEach(item -> inputContainer.addItem(item.get()));
 

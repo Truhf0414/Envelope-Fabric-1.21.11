@@ -19,7 +19,17 @@ public class Mailing {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static List<RecipeHolder<MailRecipe>> getAllRecipes(ServerLevel level) {
-        return level.getRecipeManager().getAllRecipesFor(Envelope.RecipeTypes.MAILING.get());
+        // 1.21.11: RecipeManager#getAllRecipesFor was removed (recipes by type are kept in a private RecipeMap),
+        // so filter the full recipe list by type.
+        return level.recipeAccess().getRecipes().stream()
+              .filter(holder -> holder.value().getType() == Envelope.RecipeTypes.MAILING.get())
+              .map(Mailing::asMailRecipe)
+              .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static RecipeHolder<MailRecipe> asMailRecipe(RecipeHolder<?> holder) {
+        return (RecipeHolder<MailRecipe>) holder;
     }
 
     public static Stream<RecipeHolder<MailRecipe>> getAllRecipesOf(ServiceAddress address, ServerLevel level) {
