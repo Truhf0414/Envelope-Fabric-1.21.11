@@ -122,19 +122,6 @@ public interface SealedItem {
         public static int OVERLAY_LOCKED_HIGHLIGHT_COLOR = 0xFF18A2B6;
         public static int OVERLAY_GOLDEN_HIGHLIGHT_COLOR = 0xFFFFD16E;
 
-        public static int getSealOverlayColor(ItemStack stack, int layer) {
-            if (layer != 1) {
-                return -1;
-            }
-
-            @Nullable Seal seal = stack.get(Envelope.DataComponents.SEAL);
-            if (seal != null) {
-                return getSealOverlayColor(seal);
-            }
-
-            return OVERLAY_DEFAULT_RED_COLOR;
-        }
-
         public static int getSealOverlayColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int index) {
             if (index != 0) {
                 return -1;

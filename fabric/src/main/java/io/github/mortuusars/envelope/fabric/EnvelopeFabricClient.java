@@ -16,12 +16,12 @@ import io.github.mortuusars.envelope.client.renderer.entity.layer.PigeonBackpack
 import io.github.mortuusars.envelope.client.renderer.entity.layer.PigeonHatLayer;
 import io.github.mortuusars.envelope.world.item.SealedItem;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 
 public class EnvelopeFabricClient implements ClientModInitializer {
@@ -44,15 +44,14 @@ public class EnvelopeFabricClient implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(CharredPigeonBackpackLayer.MODEL_LAYER, CharredPigeonModel::createLayerDefinition);
         EntityModelLayerRegistry.registerModelLayer(BatBackpackLayer.MODEL_LAYER, BatBackpackModel::createLayerDefinition);
 
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
+        // 1.21.11: BlockRenderLayerMap moved to fabric-rendering-v1, became static and takes a ChunkSectionLayer
+        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT,
               Envelope.Blocks.LETTER.get(),
               Envelope.Blocks.TATTERED_LETTER.get(),
               Envelope.Blocks.SERVICE_LETTER.get());
 
-        ColorProviderRegistry.ITEM.register(SealedItem.Client::getSealOverlayColor, Envelope.Items.SEALED_LETTER.get());
-        ColorProviderRegistry.ITEM.register(SealedItem.Client::getSealOverlayColor, Envelope.Items.SEALED_TATTERED_LETTER.get());
-        ColorProviderRegistry.ITEM.register(SealedItem.Client::getSealOverlayColor, Envelope.Items.SEALED_SERVICE_LETTER.get());
-        ColorProviderRegistry.ITEM.register(SealedItem.Client::getSealOverlayColor, Envelope.Items.SEALED_PACKAGE.get());
+        // 1.21.11: item colors moved to item model definitions; sealed items use the envelope:seal tint source
+        // registered in EnvelopeClient.ItemModelOverrides
 
         ColorProviderRegistry.BLOCK.register(SealedItem.Client::getSealOverlayColor, Envelope.Blocks.SEALED_PACKAGE.get());
 
