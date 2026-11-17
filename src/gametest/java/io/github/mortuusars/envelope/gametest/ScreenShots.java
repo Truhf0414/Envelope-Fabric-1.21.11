@@ -150,6 +150,13 @@ final class ScreenShots {
                 close(context, singleplayer);
             }
 
+            // Remaining model branches, in hotbar order: letter open without content, letter and quill with content,
+            // tattered letter open with content, service letter open, paper box open, payback tag medium,
+            // sealed tattered letter, sealed service letter, payback package open
+            inventory(context, singleplayer, server -> moreStatefulItems(server.overworld()));
+            context.takeScreenshot("items_stateful_more_branches");
+            close(context, singleplayer);
+
             inventory(context, singleplayer, server -> statefulItems(server.overworld()));
             context.takeScreenshot("items_stateful");
             for (int slot = 0; slot < STATEFUL_NAMES.size(); slot++) {
@@ -216,6 +223,47 @@ final class ScreenShots {
         paybackBox.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
 
         return List.of(closed, open, pack, tagShort, tagLong, sealedLetter, sealedPackage, addressTag, paybackBox);
+    }
+
+    private static List<ItemStack> moreStatefulItems(ServerLevel level) {
+        net.minecraft.network.chat.Component text = net.minecraft.network.chat.Component.literal("Port test");
+        io.github.mortuusars.envelope.world.item.component.LetterContent content =
+              new io.github.mortuusars.envelope.world.item.component.LetterContent(text);
+
+        ItemStack openEmpty = new ItemStack(Envelope.Items.LETTER.get());
+        openEmpty.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+
+        ItemStack quill = new ItemStack(Envelope.Items.LETTER_AND_QUILL.get());
+        quill.set(Envelope.DataComponents.LETTER_CONTENT, content);
+
+        ItemStack tattered = new ItemStack(Envelope.Items.TATTERED_LETTER.get());
+        tattered.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+        tattered.set(Envelope.DataComponents.LETTER_CONTENT, content);
+
+        ItemStack service = new ItemStack(Envelope.Items.SERVICE_LETTER.get());
+        service.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+
+        ItemStack paperBox = new ItemStack(Envelope.Items.PAPER_BOX.get());
+        paperBox.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+
+        ItemStack tagMedium = new ItemStack(Envelope.Items.PAYBACK_TAG.get());
+        tagMedium.set(Envelope.DataComponents.PAYBACK_TAG_CONTENTS,
+              PaybackRequest.createDefault(io.github.mortuusars.envelope.world.item.component.PaybackDuration.MEDIUM));
+
+        io.github.mortuusars.envelope.world.item.component.seal.Seal seal =
+              io.github.mortuusars.envelope.world.item.component.seal.Seal.create(level.registryAccess())
+                    .material(io.github.mortuusars.envelope.world.item.component.seal.SealMaterial.WHITE_WAX)
+                    .impression(io.github.mortuusars.envelope.world.item.component.seal.SealSymbol.HEART)
+                    .signature(text).build();
+        ItemStack sealedTattered = new ItemStack(Envelope.Items.SEALED_TATTERED_LETTER.get());
+        sealedTattered.set(Envelope.DataComponents.SEAL, seal);
+        ItemStack sealedService = new ItemStack(Envelope.Items.SEALED_SERVICE_LETTER.get());
+        sealedService.set(Envelope.DataComponents.SEAL, seal);
+
+        ItemStack paybackPackage = new ItemStack(Envelope.Items.PAYBACK_PACKAGE.get());
+        paybackPackage.set(Envelope.DataComponents.OPEN, net.minecraft.util.Unit.INSTANCE);
+
+        return List.of(openEmpty, quill, tattered, service, paperBox, tagMedium, sealedTattered, sealedService, paybackPackage);
     }
 
     /** Puts the items into the player's inventory (hotbar first) and opens the survival inventory screen. */

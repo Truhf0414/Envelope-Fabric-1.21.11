@@ -61,6 +61,7 @@ public class PortRuntimeTests extends BuggerTests {
         add("Port_Registry_AllSuppliersResolve", PortRuntimeTests::allSuppliersResolve);
         add("Port_Registry_BlockItemsUseBlockNamePrefix", PortRuntimeTests::blockItemsUseBlockPrefix);
         add("Port_Recipes_StreamCodecRoundTrip", PortRuntimeTests::recipesRoundTrip);
+        add("Port_Recipes_EquineAssuranceRecipeIsLoaded", PortRuntimeTests::equineAssuranceRecipe);
         add("Port_Predicate_ItemOccludingBlock", PortRuntimeTests::occludingPredicate);
         add("Port_Mixin_ServerLevelHoldsMailService", PortRuntimeTests::mailServiceHolder);
     }
@@ -260,6 +261,21 @@ public class PortRuntimeTests extends BuggerTests {
         }
         return problems.isEmpty() ? DataResult.success(true)
               : DataResult.error(() -> problems.size() + " of " + total + " failed: " + String.join("; ", problems));
+    }
+
+    /**
+     * EquineAssuranceBureau finds its recipe by id (address id with a "mailing/" prefix and "/golden_horse_armor").
+     * In 1.21.11 recipe ids are ResourceKeys and that lookup silently found nothing until it was fixed in phase 2;
+     * this checks the recipe under that exact id is loaded and is a mailing recipe.
+     */
+    private static DataResult<Boolean> equineAssuranceRecipe(ServerPlayer player) {
+        Identifier id = Envelope.resource("mailing/equine_assurance_bureau/golden_horse_armor");
+        return player.level().getServer().getRecipeManager()
+              .byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE, id))
+              .map(holder -> holder.value().getType() == Envelope.RecipeTypes.MAILING.get()
+                    ? DataResult.success(true)
+                    : DataResult.<Boolean>error(() -> id + " is loaded but is not a mailing recipe: " + holder.value().getType()))
+              .orElseGet(() -> DataResult.error(() -> "recipe " + id + " is not loaded"));
     }
 
     // -- Predicate
