@@ -1,7 +1,6 @@
 package io.github.mortuusars.envelope.client.gui.widget.textbox;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.envelope.client.gui.widget.textbox.display.FormattedStringDisplayCache;
 import io.github.mortuusars.envelope.client.gui.widget.textbox.display.FormattingToolbar;
 import io.github.mortuusars.envelope.client.gui.widget.textbox.display.HorizontalAlignment;
@@ -16,8 +15,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -278,7 +280,7 @@ public class TextBox extends AbstractWidget {
             int y0 = getY() + rect.getY();
             int x1 = x0 + rect.getWidth();
             int y1 = y0 + rect.getHeight();
-            guiGraphics.fill(RenderType.guiTextHighlight(), x0, y0, x1, y1, color);
+            guiGraphics.fill(RenderPipelines.GUI_TEXT_HIGHLIGHT, x0, y0, x1, y1, color); // 1.21.11: was RenderType.guiTextHighlight()
         }
     }
 
@@ -300,16 +302,13 @@ public class TextBox extends AbstractWidget {
                         color, false);
             }
         } else {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 50);
-            RenderSystem.disableBlend();
+            // 1.21.11: the GUI is 2D (no z translate); it is drawn after the text, so it ends up on top
             guiGraphics.fill(
                     getX() + cursor.x,
                     getY() + cursor.y - 1,
                     getX() + cursor.x + 1,
                     getY() + cursor.y + font.lineHeight,
                     color);
-            guiGraphics.pose().popPose();
         }
     }
 
@@ -326,8 +325,12 @@ public class TextBox extends AbstractWidget {
         return isActive() && isFocused();
     }
 
+    // 1.21.11: input handlers take event objects (KeyEvent, CharacterEvent, MouseButtonEvent) instead of raw ints
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (!isFocused() || !isActive() || !visible) return false;
 
         if (handleKeyPressed(keyCode, scanCode, modifiers)) {
@@ -364,8 +367,17 @@ public class TextBox extends AbstractWidget {
         return getEditor().keyPressed(keyCode);
     }
 
-    public boolean charTyped(char codePoint, int modifiers) {
-        if (isFocused() && getEditor().charTyped(codePoint)) {
+    @Override
+    public boolean charTyped(CharacterEvent event) {
+        if (!isFocused()) return false;
+
+        // Like 1.21.1's KeyboardHandler: a code point outside the BMP is fed as its two chars
+        boolean handled = false;
+        for (char character : Character.toChars(event.codepoint())) {
+            handled |= getEditor().charTyped(character);
+        }
+
+        if (handled) {
             lastActionTime = System.currentTimeMillis();
             onTextChanged().accept(getEditor().getText());
             refreshDisplayCache();
@@ -376,7 +388,10 @@ public class TextBox extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (!isActive() || !visible) return false;
 
         if (formattingToolbarMouseClicked(mouseX, mouseY, button)) {
@@ -426,8 +441,10 @@ public class TextBox extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (button == 0 && canDrag) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && canDrag) {
             FormattedStringDisplayCache display = getDisplayCache();
             int indexAtMousePos = display.getCharIndexAtPosition(font, (int) (mouseX - getX()), (int) (mouseY - getY()));
             getEditor().setCursorPos(indexAtMousePos, true);

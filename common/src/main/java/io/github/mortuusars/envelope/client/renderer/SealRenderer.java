@@ -1,14 +1,19 @@
 package io.github.mortuusars.envelope.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.world.item.component.seal.*;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
-import io.github.mortuusars.envelope.lib.mortaar.util.color.TintColor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 
+/**
+ * 1.21.11: GUI drawing is deferred, so the shader color and blend state can no longer be changed around draw calls
+ * (RenderSystem.setShaderColor/enableBlend are gone). Tints are passed as the color argument of each blit instead,
+ * and GUI_TEXTURED already blends.
+ */
 public class SealRenderer {
     public static final Identifier IRON_DIE_SPRITE = Envelope.resource("seal/die/iron");
     public static final Identifier SEAL_GLINT_SPRITE = Envelope.resource("seal/glint");
@@ -23,67 +28,59 @@ public class SealRenderer {
         Identifier impressionTexture = seal.impression().value().sprite();
 
         // Background
-        guiGraphics.blitSprite(materialTexture, x, y, 32, 32);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, materialTexture, x, y, 32, 32);
 
         // Side
-        setShaderTintColor(colors.side());
-        guiGraphics.blitSprite(impressionTexture, x + 1, y + 2, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x, y + 2, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x - 1, y + 2, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x + 1, y + 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x, y + 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x - 1, y + 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x + 1, y, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x, y, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x - 1, y, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x + 1, y - 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x, y - 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x - 1, y - 1, 32, 32);
-        guiGraphics.blitSprite(impressionTexture, x, y - 2, 32, 32);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x + 1, y + 2, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y + 2, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x - 1, y + 2, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x + 1, y + 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y + 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x - 1, y + 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x + 1, y, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x - 1, y, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x + 1, y - 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y - 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x - 1, y - 1, 32, 32, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y - 2, 32, 32, colors.side().tint());
 
         // Shadow
-        setShaderTintColor(colors.shadow());
-        guiGraphics.blitSprite(impressionTexture, x, y + 1, 32, 32);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y + 1, 32, 32, colors.shadow().tint());
 
         // Highlight
-        setShaderTintColor(colors.highlight());
-        guiGraphics.blitSprite(impressionTexture, x, y - 1, 32, 32);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y - 1, 32, 32, colors.highlight().tint());
 
         // Base
-        setShaderTintColor(colors.base());
-        guiGraphics.blitSprite(impressionTexture, x, y, 32, 32);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionTexture, x, y, 32, 32, colors.base().tint());
 
-        RenderSystem.setShaderColor(1, 1, 1, 1);
 
         if (material.hasGlint()) {
-            RenderSystem.enableBlend();
-            guiGraphics.blitSprite(SEAL_GLINT_SPRITE, 32, 32, 0, 0, x + 1, y + 1, 32, 32);
-            RenderSystem.disableBlend();
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SEAL_GLINT_SPRITE, 32, 32, 0, 0, x + 1, y + 1, 32, 32);
         }
 
         seal.lock().ifPresent(lock -> {
             if (lock.isLocked(Minecrft.level())) {
-                // Heartbeat pulsing effect:
-                double time = (Minecrft.level().getGameTime() + Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true)) / 20.0;
+                // Heartbeat pulsing effect.
+                // 1.21.11: upstream multiplied the shader color by up to 1.4 (brighter than the texture). Vertex colors
+                // cannot exceed 1.0, so the pulse is drawn as a second, translucent pass of the overlay on each beat.
+                double time = (Minecrft.level().getGameTime() + Minecrft.get().getDeltaTracker().getGameTimeDeltaPartialTick(true)) / 20.0;
                 double beat = Math.pow((Math.sin(time * Math.PI * 2 * 1) + 1.0) * 0.5, 10);
-                float brightness = (float) Mth.lerp(beat, 1.0, 1.4);
-                RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0f);
 
-                RenderSystem.enableBlend();
-                guiGraphics.blitSprite(LOCKED_OVERLAY_SPRITE, 34, 34,
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LOCKED_OVERLAY_SPRITE, 34, 34,
                       0, 0, x - 1, y - 1, 34, 34);
-                RenderSystem.disableBlend();
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LOCKED_OVERLAY_SPRITE, 34, 34,
+                      0, 0, x - 1, y - 1, 34, 34, ARGB.white((float) Mth.lerp(beat, 0.0, 0.4)));
 
-                guiGraphics.blitSprite(LOCK_SPRITE, 34, 34,
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LOCK_SPRITE, 34, 34,
                       0, 0, x - 1, y - 1, 34, 34);
-                RenderSystem.setShaderColor(1, 1, 1, 1);
             }
         });
     }
 
     public void renderDie(SealSymbol impression, ShadingPalette colors, GuiGraphics guiGraphics, int x, int y) {
         // Background
-        guiGraphics.blitSprite(IRON_DIE_SPRITE, x, y, 30, 30);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, IRON_DIE_SPRITE, x, y, 30, 30);
 
         Identifier impressionSprite = impression.sprite();
 
@@ -92,37 +89,28 @@ public class SealRenderer {
         y--;
 
         // Side
-        setShaderTintColor(colors.side());
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x + 1, y + 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y + 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x - 1, y + 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x + 1, y, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x - 1, y, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x + 1, y - 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y - 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x - 1, y - 1, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x + 1, y - 2, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y - 2, 30, 30);
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x - 1, y - 2, 30, 30);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x + 1, y + 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y + 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x - 1, y + 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x + 1, y, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x - 1, y, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x + 1, y - 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y - 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x - 1, y - 1, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x + 1, y - 2, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y - 2, 30, 30, colors.side().tint());
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x - 1, y - 2, 30, 30, colors.side().tint());
 
         // Highlight
-        setShaderTintColor(colors.highlight());
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y + 1, 30, 30);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y + 1, 30, 30, colors.highlight().tint());
 
         // Shadow
-        setShaderTintColor(colors.shadow());
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y - 1, 30, 30);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y - 1, 30, 30, colors.shadow().tint());
 
         // Base
-        setShaderTintColor(colors.base());
-        guiGraphics.blitSprite(impressionSprite, -30, 30, -30, 0, x, y, 30, 30);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, impressionSprite, -30, 30, -30, 0, x, y, 30, 30, colors.base().tint());
 
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-    }
-
-    public static void setShaderTintColor(TintColor color) {
-        RenderSystem.setShaderColor(color.r(), color.g(), color.b(), color.a());
     }
 
     // Have you seen someone rendering textures this way? Now you have.

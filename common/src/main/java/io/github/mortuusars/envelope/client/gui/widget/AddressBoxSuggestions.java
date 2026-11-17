@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class AddressBoxSuggestions extends AbstractWidget {
     protected final Font font = Minecrft.get().font;
@@ -96,7 +98,7 @@ public class AddressBoxSuggestions extends AbstractWidget {
                 text = font.plainSubstrByWidth(suggestion.getText(), getWidth() - font.width(ellipsis)) + ellipsis;
 
                 if (hoveredIndex == i) {
-                    guiGraphics.renderTooltip(font, Component.literal(suggestion.getText()), mouseX, mouseY);
+                    guiGraphics.setTooltipForNextFrame(font, Component.literal(suggestion.getText()), mouseX, mouseY);
                 }
             }
             guiGraphics.drawString(font, text, getX(), y + 1, textColor, true);
@@ -125,7 +127,8 @@ public class AddressBoxSuggestions extends AbstractWidget {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) { // 1.21.11: KeyEvent instead of raw ints
+        int keyCode = event.key();
         if (keyCode == InputConstants.KEY_LCONTROL) {
             show = !show;
             return true;
@@ -221,7 +224,9 @@ public class AddressBoxSuggestions extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) { // 1.21.11: MouseButtonEvent instead of raw doubles
+        double mouseX = event.x();
+        double mouseY = event.y();
         if (!show) {
             return;
         }

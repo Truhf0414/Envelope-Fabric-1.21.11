@@ -7,7 +7,7 @@ import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
@@ -190,7 +190,9 @@ public class FormattedStringEditor {
     }
 
     private boolean onKeyPressed(int key) {
-        if (Screen.isSelectAll(key)) {
+        // 1.21.11: Screen.isSelectAll(key) was removed; same check as 1.21.1 (Ctrl+A without Shift or Alt)
+        if (key == InputConstants.KEY_A && Minecraft.getInstance().hasControlDown()
+              && !Minecraft.getInstance().hasShiftDown() && !Minecraft.getInstance().hasAltDown()) {
             selectAll();
             return true;
         }
@@ -428,7 +430,7 @@ public class FormattedStringEditor {
 
     public interface Validator {
         static Predicate<String> fitInDimensions(Font font, int width, int height) {
-            return string -> string.length() < 1024 && font.wordWrapHeight(string, width) + (string.endsWith("\n") ? font.lineHeight : 0) <= height;
+            return string -> string.length() < 1024 && font.wordWrapHeight(FormattedText.of(string), width) + (string.endsWith("\n") ? font.lineHeight : 0) <= height;
         }
     }
 }

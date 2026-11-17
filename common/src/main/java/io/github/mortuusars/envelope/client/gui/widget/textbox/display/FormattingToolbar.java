@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public class FormattingToolbar {
     public static final Identifier TEXTURE = Envelope.resource("textures/gui/formatting_toolbar.png");
@@ -162,9 +163,7 @@ public class FormattingToolbar {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!isVisible() || !shouldShow()) return;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0, 0, 500);
-
+        // 1.21.11: the GUI is 2D, there is no z to push the toolbar forward with; it draws over what was drawn before it
         @Nullable FormattingButton hoveredButton = null;
 
         for (FormattingButton button : buttons) {
@@ -183,18 +182,16 @@ public class FormattingToolbar {
                 }
             }
 
-            guiGraphics.blit(TEXTURE, x + button.area.getX(), y + button.area.getY(),
-                    button.uv.x, button.uv.y + vOffset, button.area.getWidth(), button.area.getHeight());
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + button.area.getX(), y + button.area.getY(),
+                    button.uv.x, button.uv.y + vOffset, button.area.getWidth(), button.area.getHeight(), 256, 256);
         }
 
         if (hoveredButton != null) {
             MutableComponent component = Component.translatable(
                             "gui.envelope.formatting." + hoveredButton.formatting.getName())
                     .append(" §8" + HOTKEYS.getOrDefault(hoveredButton.formatting.getChar(), ""));
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, component, mouseX, mouseY + 20);
+            guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, component, mouseX, mouseY + 20);
         }
-
-        guiGraphics.pose().popPose();
     }
 
     // -- Input
