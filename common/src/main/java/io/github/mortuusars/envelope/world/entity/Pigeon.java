@@ -73,6 +73,7 @@ import net.minecraft.world.entity.animal.feline.Ocelot;
 import net.minecraft.world.entity.animal.fox.Fox;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.entity.animal.Animal;
 
 // 1.21.11: VariantHolder was removed; getVariant/setVariant stay as plain methods. Consumable.OverrideConsumeSound replaces getEatingSound.
 public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Consumable.OverrideConsumeSound {
@@ -212,7 +213,9 @@ public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Con
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes()
+        // 1.21.11: TemptGoal reads the TEMPT_RANGE attribute (1.21.2+) and crashes the server if the entity does not
+        // have it. Animal.createAnimalAttributes() adds it with 10.0, the range TemptGoal used to hard-code.
+        return Animal.createAnimalAttributes()
               .add(Attributes.MAX_HEALTH, 8.0)
               .add(Attributes.FLYING_SPEED, 1F)
               .add(Attributes.MOVEMENT_SPEED, 0.2F)

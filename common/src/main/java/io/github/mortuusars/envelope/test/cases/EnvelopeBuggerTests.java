@@ -11,6 +11,8 @@ public class EnvelopeBuggerTests {
               .addFrom(new MailCraftingTests())
               // Port tests (1.21.11, phase 2 D7)
               .addFrom(new SaveLoadTests())
-              .addFrom(new BlockRemovalTests());
+              .addFrom(new BlockRemovalTests())
+              // Port tests (1.21.11, phase 3b)
+              .addFrom(new PortRuntimeTests());
     }
 }
