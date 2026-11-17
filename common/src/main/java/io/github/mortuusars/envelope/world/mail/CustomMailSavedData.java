@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
@@ -42,14 +42,14 @@ public class CustomMailSavedData extends SavedData {
 
     /**
      * Gets the tag by ID.<br>
-     * Don't forget to call {@link #setDirty()} or {@link #set(ResourceLocation, CompoundTag)} to ensure that changes will be saved.
+     * Don't forget to call {@link #setDirty()} or {@link #set(Identifier, CompoundTag)} to ensure that changes will be saved.
      * @param location ID of the data.
      */
-    public CompoundTag get(ResourceLocation location) {
+    public CompoundTag get(Identifier location) {
         return getData().getCompound(location.toString());
     }
 
-    public void set(ResourceLocation location, CompoundTag data) {
+    public void set(Identifier location, CompoundTag data) {
         getData().put(location.toString(), data);
         setDirty();
     }

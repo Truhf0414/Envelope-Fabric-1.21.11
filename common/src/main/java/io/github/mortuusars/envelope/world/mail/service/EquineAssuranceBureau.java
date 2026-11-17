@@ -18,7 +18,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class EquineAssuranceBureau {
-    private static final ResourceLocation RECIPE_ID = ServiceAddress.EQUINE_ASSURANCE_BUREAU.location()
+    private static final Identifier RECIPE_ID = ServiceAddress.EQUINE_ASSURANCE_BUREAU.location()
           .withPrefix("mailing/")
           .withSuffix("/golden_horse_armor");
     private static final long MIN_SEND_INTERVAL = SharedConstants.TICKS_PER_GAME_DAY;

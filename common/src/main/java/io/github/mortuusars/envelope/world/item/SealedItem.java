@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -138,13 +138,13 @@ public interface SealedItem {
                 double time = (Minecrft.level().getGameTime() + Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true)) / 20.0;
                 double beat = Math.pow((Math.sin(time * Math.PI * 2 * 1) + 1.0) * 0.5, 10);
                 float delta = (float) Mth.lerp(beat, 0, 1);
-                return FastColor.ARGB32.lerp(delta, materialColor, OVERLAY_LOCKED_HIGHLIGHT_COLOR);
+                return ARGB.lerp(delta, materialColor, OVERLAY_LOCKED_HIGHLIGHT_COLOR);
             }
 
             if (seal.material().is(SealMaterial.GOLD)) {
                 double time = (Minecrft.level().getGameTime() + Minecrft.get().getTimer().getGameTimeDeltaPartialTick(true)) / 10f;
                 double delta = (Math.sin(time) + 1.0) / 2.0;
-                return FastColor.ARGB32.lerp((float)delta, materialColor, OVERLAY_GOLDEN_HIGHLIGHT_COLOR);
+                return ARGB.lerp((float)delta, materialColor, OVERLAY_GOLDEN_HIGHLIGHT_COLOR);
             }
 
             return materialColor;

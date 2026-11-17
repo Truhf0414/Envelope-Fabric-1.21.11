@@ -11,10 +11,10 @@ import io.github.mortuusars.envelope.lib.mortaar.bugger.test.Test;
 import io.github.mortuusars.envelope.world.inventory.StackIngredient;
 import io.github.mortuusars.envelope.world.mail.MailService;
 import io.github.mortuusars.envelope.world.mail.address.type.BlockAddress;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Unit;
@@ -174,7 +174,7 @@ public class StackIngredientTests extends BuggerTests {
                   stack.set(DataComponents.FIRE_RESISTANT, Unit.INSTANCE);
                   stack.set(Envelope.DataComponents.MAIL_DELIVERY_INFO, DeliveryInfo.create().sender(MailService.of(Platform.getCurrentServerOrThrow().overworld()).getAddress()).immutable());
                   stack.set(Envelope.DataComponents.MAIL_ADDRESS_TAG, new BlockAddress("Mortuusars Laboratory"));
-                  stack.set(Envelope.DataComponents.SERVICE_LETTER_MEANING, new ServiceLetterMeaning(ResourceLocation.parse("asd:123")));
+                  stack.set(Envelope.DataComponents.SERVICE_LETTER_MEANING, new ServiceLetterMeaning(Identifier.parse("asd:123")));
                   return decodeFromJson(json).test(stack);
               }));
     }

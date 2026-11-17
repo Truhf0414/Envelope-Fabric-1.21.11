@@ -29,7 +29,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -852,7 +852,7 @@ public class Pigeon extends Animal implements VariantHolder<Holder<PigeonVariant
               ? PigeonVariant.fromLegacyId(tag.getInt("Variant"))
               : tag.getString("Variant");
 
-        Optional.ofNullable(ResourceLocation.tryParse(variant))
+        Optional.ofNullable(Identifier.tryParse(variant))
               .map(key -> ResourceKey.create(Envelope.Registries.PIGEON_VARIANT, key))
               .flatMap(key -> registryAccess().registryOrThrow(Envelope.Registries.PIGEON_VARIANT)
                     .getHolder(key))

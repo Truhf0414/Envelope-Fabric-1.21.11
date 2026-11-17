@@ -6,7 +6,7 @@ import io.github.mortuusars.envelope.Envelope;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
@@ -28,11 +28,11 @@ public class MailDropOffHandlerSavedData extends SavedData {
         return data;
     }
 
-    public CompoundTag get(ResourceLocation location) {
+    public CompoundTag get(Identifier location) {
         return getData().getCompound(location.toString());
     }
 
-    public void set(ResourceLocation location, CompoundTag data) {
+    public void set(Identifier location, CompoundTag data) {
         getData().put(location.toString(), data);
         setDirty();
     }

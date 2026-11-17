@@ -9,7 +9,7 @@ import io.github.mortuusars.envelope.world.mail.MailService;
 import io.github.mortuusars.envelope.world.mail.delivery.PhysicalCourier;
 import io.github.mortuusars.envelope.world.mail.delivery.background.BackgroundCourier;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -146,11 +146,11 @@ public class EnvelopeDebugCommand {
 
 
 //        Component text = Component.literal("       Report to Chief\n\n  Patrol we sent to village not return. Unexpected danger possible.\n\n  Must know more. Asking reinforcements.")
-//              .setStyle(Style.EMPTY.withFont(ResourceLocation.withDefaultNamespace("illageralt")));
+//              .setStyle(Style.EMPTY.withFont(Identifier.withDefaultNamespace("illageralt")));
 //
 //        ItemStack letter = Mail.createLetter(text)
 //              .set(DataComponents.ITEM_NAME, Component.literal("Report")
-//                    .withStyle(Style.EMPTY.withFont(ResourceLocation.withDefaultNamespace("illageralt")))).get();
+//                    .withStyle(Style.EMPTY.withFont(Identifier.withDefaultNamespace("illageralt")))).get();
 //
 //        player.addItem(letter);
 

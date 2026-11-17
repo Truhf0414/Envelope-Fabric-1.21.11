@@ -9,14 +9,14 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public record ClientboundSyncDeathLockDataPacket(List<SealLock> locks) implements Packet {
-    public static final ResourceLocation ID = Envelope.resource("sync_death_lock_data");
+    public static final Identifier ID = Envelope.resource("sync_death_lock_data");
     public static final Type<ClientboundSyncDeathLockDataPacket> TYPE = new Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundSyncDeathLockDataPacket> STREAM_CODEC = StreamCodec.composite(

@@ -8,7 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * Updates the client when mail is removed from the storage by hopper or something.
  */
 public record ClientboundMailboxMenuMailRemovedPacket(int slot) implements Packet {
-    public static final ResourceLocation ID = Envelope.resource("mailbox_menu_mail_removed");
+    public static final Identifier ID = Envelope.resource("mailbox_menu_mail_removed");
     public static final Type<ClientboundMailboxMenuMailRemovedPacket> TYPE = new Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundMailboxMenuMailRemovedPacket> STREAM_CODEC = StreamCodec.composite(

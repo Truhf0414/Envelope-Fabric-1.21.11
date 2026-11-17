@@ -5,16 +5,16 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public record ServiceLetterMeaning(ResourceLocation id) {
+public record ServiceLetterMeaning(Identifier id) {
     public static final Codec<ServiceLetterMeaning> CODEC =
-          ResourceLocation.CODEC.xmap(ServiceLetterMeaning::new, ServiceLetterMeaning::id);
+          Identifier.CODEC.xmap(ServiceLetterMeaning::new, ServiceLetterMeaning::id);
     public static final StreamCodec<ByteBuf, ServiceLetterMeaning> STREAM_CODEC =
-          ResourceLocation.STREAM_CODEC.map(ServiceLetterMeaning::new, ServiceLetterMeaning::id);
+          Identifier.STREAM_CODEC.map(ServiceLetterMeaning::new, ServiceLetterMeaning::id);
 
     public MutableComponent translate() {
         return Component.translatable(id.toLanguageKey("service_letter_meaning").replace("/", "."));

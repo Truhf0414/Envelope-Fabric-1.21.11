@@ -53,8 +53,8 @@ import io.github.mortuusars.envelope.lib.mortaar.bugger.Bugger;
 import io.github.mortuusars.envelope.lib.mortaar.bugger.data.EntityData;
 import io.github.mortuusars.envelope.lib.mortaar.bugger.data.OptionalEntityData;
 import io.github.mortuusars.envelope.lib.mortaar.util.DeferredSoundType;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
-import net.minecraft.advancements.critereon.PlayerTrigger;
+import net.minecraft.advancements.criterion.ItemSubPredicate;
+import net.minecraft.advancements.criterion.PlayerTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.core.Holder;
@@ -65,7 +65,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.tags.TagKey;
@@ -154,8 +154,8 @@ public class Envelope {
     /**
      * Creates resource location in the mod namespace with the given path.
      */
-    public static ResourceLocation resource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(ID, path);
+    public static Identifier resource(String path) {
+        return Identifier.fromNamespaceAndPath(ID, path);
     }
 
     public static void registerServiceDropOffHandlers() {
@@ -167,7 +167,7 @@ public class Envelope {
     }
 
     public static class Blocks {
-        public static final Map<ResourceLocation, Supplier<PigeonholeBlock>> PIGEONHOLES = new HashMap<>();
+        public static final Map<Identifier, Supplier<PigeonholeBlock>> PIGEONHOLES = new HashMap<>();
 
         public static final Supplier<PigeonholeBlock> OAK_PIGEONHOLE = pigeonhole("oak", net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultMapColor());
         public static final Supplier<PigeonholeBlock> SPRUCE_PIGEONHOLE = pigeonhole("spruce", net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS.defaultMapColor());
@@ -677,19 +677,19 @@ public class Envelope {
     }
 
     public static class Stats {
-        public static final Supplier<ResourceLocation> INTERACT_WITH_MAILBOX =
+        public static final Supplier<Identifier> INTERACT_WITH_MAILBOX =
               REGISTRAR.stat(resource("interact_with_mailbox"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> MAIL_DELIVERIES =
+        public static final Supplier<Identifier> MAIL_DELIVERIES =
               REGISTRAR.stat(resource("mail_deliveries"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> SEALS_APPLIED =
+        public static final Supplier<Identifier> SEALS_APPLIED =
               REGISTRAR.stat(resource("seals_applied"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> SEALS_BROKEN =
+        public static final Supplier<Identifier> SEALS_BROKEN =
               REGISTRAR.stat(resource("seals_broken"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> LETTERS_FOLDED =
+        public static final Supplier<Identifier> LETTERS_FOLDED =
               REGISTRAR.stat(resource("letters_folded"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> PACKAGES_CREATED =
+        public static final Supplier<Identifier> PACKAGES_CREATED =
               REGISTRAR.stat(resource("packages_created"), StatFormatter.DEFAULT);
-        public static final Supplier<ResourceLocation> PACKAGES_OPENED =
+        public static final Supplier<Identifier> PACKAGES_OPENED =
               REGISTRAR.stat(resource("packages_opened"), StatFormatter.DEFAULT);
 
         public static void init() {

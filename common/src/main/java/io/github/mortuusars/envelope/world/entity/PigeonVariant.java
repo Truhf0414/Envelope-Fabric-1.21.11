@@ -13,7 +13,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public record PigeonVariant(ResourceLocation texture, HolderSet<Biome> biomes, SpawningWeights weights, boolean inheritable) {
+public record PigeonVariant(Identifier texture, HolderSet<Biome> biomes, SpawningWeights weights, boolean inheritable) {
     public static final ResourceKey<PigeonVariant> GRAY =
           ResourceKey.create(Envelope.Registries.PIGEON_VARIANT, Envelope.resource("gray"));
     public static final ResourceKey<PigeonVariant> BROWN =
@@ -45,14 +45,14 @@ public record PigeonVariant(ResourceLocation texture, HolderSet<Biome> biomes, S
     // --
 
     public static final Codec<PigeonVariant> DIRECT_CODEC = RecordCodecBuilder.create(i -> i.group(
-          ResourceLocation.CODEC.fieldOf("texture").forGetter(PigeonVariant::texture),
+          Identifier.CODEC.fieldOf("texture").forGetter(PigeonVariant::texture),
           RegistryCodecs.homogeneousList(Registries.BIOME).optionalFieldOf("spawn_biomes", HolderSet.empty()).forGetter(PigeonVariant::biomes),
           SpawningWeights.CODEC.optionalFieldOf("spawn_weights", SpawningWeights.DEFAULT).forGetter(PigeonVariant::weights),
           Codec.BOOL.optionalFieldOf("inheritable", true).forGetter(PigeonVariant::inheritable)
     ).apply(i, PigeonVariant::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PigeonVariant> DIRECT_STREAM_CODEC = StreamCodec.composite(
-          ResourceLocation.STREAM_CODEC, PigeonVariant::texture,
+          Identifier.STREAM_CODEC, PigeonVariant::texture,
           ByteBufCodecs.holderSet(Registries.BIOME), PigeonVariant::biomes,
           SpawningWeights.STREAM_CODEC, PigeonVariant::weights,
           ByteBufCodecs.BOOL, PigeonVariant::inheritable,

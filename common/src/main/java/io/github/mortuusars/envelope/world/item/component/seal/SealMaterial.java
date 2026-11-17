@@ -11,7 +11,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,14 +19,14 @@ import java.util.*;
 
 public final class SealMaterial {
     public static final Codec<SealMaterial> DIRECT_CODEC = RecordCodecBuilder.create(i -> i.group(
-          ResourceLocation.CODEC.fieldOf("sprite").forGetter(SealMaterial::sprite),
+          Identifier.CODEC.fieldOf("sprite").forGetter(SealMaterial::sprite),
           Codecs.HEX_COLOR.fieldOf("model_tint_color").forGetter(SealMaterial::modelTintColor),
           ShadingPalette.CODEC.fieldOf("impression_palette").forGetter(SealMaterial::impressionPalette),
           Codec.BOOL.optionalFieldOf("has_glint", false).forGetter(SealMaterial::hasGlint)
     ).apply(i, SealMaterial::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SealMaterial> DIRECT_STREAM_CODEC = StreamCodec.composite(
-          ResourceLocation.STREAM_CODEC, SealMaterial::sprite,
+          Identifier.STREAM_CODEC, SealMaterial::sprite,
           ByteBufCodecs.INT, SealMaterial::modelTintColor,
           ShadingPalette.STREAM_CODEC, SealMaterial::impressionPalette,
           ByteBufCodecs.BOOL, SealMaterial::hasGlint,
@@ -61,12 +61,12 @@ public final class SealMaterial {
     public static final ResourceKey<SealMaterial> SCULK = ResourceKey.create(Envelope.Registries.SEAL_MATERIAL, Envelope.resource("sculk"));
     public static final ResourceKey<SealMaterial> GOLD = ResourceKey.create(Envelope.Registries.SEAL_MATERIAL, Envelope.resource("gold"));
 
-    private final ResourceLocation sprite;
+    private final Identifier sprite;
     private final int modelTintColor;
     private final ShadingPalette impressionPalette;
     private final boolean hasGlint;
 
-    public SealMaterial(ResourceLocation sprite, int modelTintColor, ShadingPalette impressionPalette, boolean hasGlint) {
+    public SealMaterial(Identifier sprite, int modelTintColor, ShadingPalette impressionPalette, boolean hasGlint) {
         this.sprite = sprite;
         this.modelTintColor = modelTintColor;
         this.impressionPalette = impressionPalette;
@@ -86,7 +86,7 @@ public final class SealMaterial {
         return null;
     }
 
-    public ResourceLocation sprite() {
+    public Identifier sprite() {
         return sprite;
     }
 
@@ -137,7 +137,7 @@ public final class SealMaterial {
         return key;
     }
 
-    public static ResourceLocation spriteLocationFromKey(ResourceKey<SealMaterial> key) {
+    public static Identifier spriteLocationFromKey(ResourceKey<SealMaterial> key) {
         return key.location().withPath(path -> "seal/material/" + path);
     }
 

@@ -1,7 +1,7 @@
 package io.github.mortuusars.envelope.advancements.predicate;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.criterion.ItemSubPredicate;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 

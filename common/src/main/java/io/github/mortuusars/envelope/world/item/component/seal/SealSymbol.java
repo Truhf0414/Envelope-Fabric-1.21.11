@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.world.item.component.seal;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.envelope.Envelope;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -11,7 +11,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,11 +21,11 @@ import java.util.function.Function;
 
 public final class SealSymbol {
     public static final Codec<SealSymbol> DIRECT_CODEC = RecordCodecBuilder.create(i -> i.group(
-          ResourceLocation.CODEC.fieldOf("sprite").forGetter(SealSymbol::sprite)
+          Identifier.CODEC.fieldOf("sprite").forGetter(SealSymbol::sprite)
     ).apply(i, SealSymbol::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SealSymbol> DIRECT_STREAM_CODEC = StreamCodec.composite(
-          ResourceLocation.STREAM_CODEC, SealSymbol::sprite,
+          Identifier.STREAM_CODEC, SealSymbol::sprite,
           SealSymbol::new
     );
 
@@ -69,13 +69,13 @@ public final class SealSymbol {
 
     // --
 
-    private final ResourceLocation sprite;
+    private final Identifier sprite;
 
-    public SealSymbol(ResourceLocation sprite) {
+    public SealSymbol(Identifier sprite) {
         this.sprite = sprite;
     }
 
-    public ResourceLocation sprite() {
+    public Identifier sprite() {
         return sprite;
     }
 
@@ -115,7 +115,7 @@ public final class SealSymbol {
     }
 
     public static void bootstrap(BootstrapContext<SealSymbol> context) {
-        Function<ResourceKey<SealSymbol>, ResourceLocation> keyToTexture = key ->
+        Function<ResourceKey<SealSymbol>, Identifier> keyToTexture = key ->
               key.location().withPath(path -> "seal/symbol/" + path);
 
         NUMBERS.values().forEach(key -> context.register(key, new SealSymbol(keyToTexture.apply(key))));

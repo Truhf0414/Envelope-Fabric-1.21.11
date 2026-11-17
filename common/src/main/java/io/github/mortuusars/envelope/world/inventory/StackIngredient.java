@@ -5,7 +5,7 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.envelope.Envelope;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPredicate;
@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Advanced ingredient to allow matching stacks of specific count and/or components.
  * <br>
- * Similar to {@link net.minecraft.advancements.critereon.ItemPredicate} but more suited for inventories and crafting.
+ * Similar to {@link net.minecraft.advancements.criterion.ItemPredicate} but more suited for inventories and crafting.
  * <br>
  * <br>
  * It is detached from all vanilla ingredient system, so logic for it has to be manually written.

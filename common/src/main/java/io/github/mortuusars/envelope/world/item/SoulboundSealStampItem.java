@@ -6,13 +6,13 @@ import io.github.mortuusars.envelope.world.item.component.seal.Seal;
 import io.github.mortuusars.envelope.world.item.component.seal.SealMaterial;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +41,7 @@ public class SoulboundSealStampItem extends SealStampItem {
         double time = Util.getMillis() / 1000.0;
         double beat = Math.pow((Math.sin(time * Math.PI * 2 * 1) + 1.0) * 0.5, 10);
         float delta = (float) Mth.lerp(beat, 0, 1);
-        return FastColor.ARGB32.lerp(delta, 0xFF08ABB3, 0xFF40E7FF);
+        return ARGB.lerp(delta, 0xFF08ABB3, 0xFF40E7FF);
     }
 
     // --
