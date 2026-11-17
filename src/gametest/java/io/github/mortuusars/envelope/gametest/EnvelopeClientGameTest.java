@@ -356,10 +356,26 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
                 return bat;
             });
 
-            context.runOnClient(client -> {
-                client.options.hideGui = false;
-                client.options.fov().set(70);
+            // Every Envelope block in rows in front of the camera (phase 4: models, textures, block states)
+            context.runOnClient(client -> client.options.fov().set(70));
+            int placed = singleplayer.getServer().computeOnServer(server -> {
+                ServerLevel level = server.overworld();
+                ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                List<net.minecraft.world.level.block.Block> blocks = net.minecraft.core.registries.BuiltInRegistries.BLOCK.stream()
+                      .filter(block -> net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(Envelope.ID))
+                      .toList();
+                int perRow = 7;
+                for (int i = 0; i < blocks.size(); i++) {
+                    BlockPos pos = player.blockPosition().offset((i % perRow) * 2 - (perRow - 1), 0, 5 + (i / perRow) * 2);
+                    level.setBlock(pos, blocks.get(i).defaultBlockState(), 3);
+                }
+                return blocks.size();
             });
+            context.waitTicks(20);
+            singleplayer.getClientWorld().waitForChunksRender();
+            context.takeScreenshot("blocks_all_" + placed);
+
+            context.runOnClient(client -> client.options.hideGui = false);
             singleplayer.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().setGameMode(GameType.CREATIVE));
             context.waitTicks(5);
         }
