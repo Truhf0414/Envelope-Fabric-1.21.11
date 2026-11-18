@@ -79,19 +79,23 @@ public class BlockRemovalTests extends BuggerTests {
         // which shows the send step can tell "delivered" from "returned".
         add("BlockRemoval_SendToIntactMailboxControl", BlockRemovalTests::sendToIntactMailbox);
 
-        add("BlockRemoval_Package_SurvivalBreak", player -> singleDrop(player, Envelope.Blocks.PACKAGE.get().defaultBlockState(),
-              Envelope.Items.PACKAGE.get(), (level, pos) -> {
-                  if (level.getBlockEntity(pos) instanceof PackageBlockEntity be) {
-                      be.setUnpackWhenBroken(false);
-                      be.setPackage(new ItemStack(Envelope.Items.PACKAGE.get()));
-                  }
-              }));
-        add("BlockRemoval_Letter_SurvivalBreak", player -> singleDrop(player, Envelope.Blocks.LETTER.get().defaultBlockState(),
-              Envelope.Items.LETTER.get(), (level, pos) -> {
-                  if (level.getBlockEntity(pos) instanceof LetterBlockEntity be) {
-                      be.setLetter(new ItemStack(Envelope.Items.LETTER.get()));
-                  }
-              }));
+        // Letters and packages are not Clearable, so 1.21.1's onRemove dropped them for every removal, commands included.
+        // The command cases go through BlockEntityRemoval (setRemoved), the others through preRemoveSideEffects.
+        for (Removal removal : Removal.values()) {
+            add("BlockRemoval_Package_" + removal, player -> singleDrop(player, Envelope.Blocks.PACKAGE.get().defaultBlockState(),
+                  Envelope.Items.PACKAGE.get(), removal, (level, pos) -> {
+                      if (level.getBlockEntity(pos) instanceof PackageBlockEntity be) {
+                          be.setUnpackWhenBroken(false);
+                          be.setPackage(new ItemStack(Envelope.Items.PACKAGE.get()));
+                      }
+                  }));
+            add("BlockRemoval_Letter_" + removal, player -> singleDrop(player, Envelope.Blocks.LETTER.get().defaultBlockState(),
+                  Envelope.Items.LETTER.get(), removal, (level, pos) -> {
+                      if (level.getBlockEntity(pos) instanceof LetterBlockEntity be) {
+                          be.setLetter(new ItemStack(Envelope.Items.LETTER.get()));
+                      }
+                  }));
+        }
     }
 
     // --
@@ -189,7 +193,7 @@ public class BlockRemovalTests extends BuggerTests {
         return new BlockDropOffHandler().handle(new MailDropOffContext(MailService.of(level), address, delivery));
     }
 
-    private static DataResult<Boolean> singleDrop(ServerPlayer player, BlockState state, Item expected,
+    private static DataResult<Boolean> singleDrop(ServerPlayer player, BlockState state, Item expected, Removal removal,
                                                   BiConsumer<ServerLevel, BlockPos> fill) {
         ServerLevel level = player.level();
         BlockPos pos = SaveLoadTests.testPos(player);
@@ -197,14 +201,14 @@ public class BlockRemovalTests extends BuggerTests {
         level.setBlock(pos, state, 3);
         fill.accept(level, pos);
 
-        remove(player, level, pos, Removal.SURVIVAL_BREAK);
+        remove(player, level, pos, removal);
 
         int drops = countDropped(level, pos, expected);
         cleanUp(level, pos);
         // Exactly one: zero means the item was lost, two means the block entity and the loot table both dropped it.
         return drops == 1
               ? DataResult.success(true)
-              : DataResult.error(() -> state + ": dropped " + drops + " x " + expected + ", expected exactly 1");
+              : DataResult.error(() -> state + " " + removal + ": dropped " + drops + " x " + expected + ", expected exactly 1");
     }
 
     private static void remove(ServerPlayer player, ServerLevel level, BlockPos pos, Removal removal) {

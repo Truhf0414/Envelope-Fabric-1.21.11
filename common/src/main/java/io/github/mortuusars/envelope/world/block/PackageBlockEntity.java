@@ -24,6 +24,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 public class PackageBlockEntity extends BlockEntity {
     protected ItemStack item = ItemStack.EMPTY;
     protected boolean unpackWhenBroken = true;
+    private boolean removalHandled = false;
 
     protected PackageBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -56,11 +57,27 @@ public class PackageBlockEntity extends BlockEntity {
     // 1.21.11: moved here from PackageBlock#onRemove (removed). Called on the server when the block changed.
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        removalHandled = true;
         if (level == null) return;
         if (unpackWhenBroken()) {
             level.playSound(null, pos, Envelope.SoundEvents.PAPER_TEAR.get(), SoundSource.BLOCKS, 0.8f, 1);
         }
         dropContents(level, pos);
+    }
+
+    // 1.21.11: commands that replace blocks skip preRemoveSideEffects; 1.21.1's onRemove dropped the package then too.
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (!removalHandled && BlockEntityRemoval.wasBlockReplaced(this)) {
+            preRemoveSideEffects(getBlockPos(), getBlockState());
+        }
+    }
+
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        removalHandled = false;
     }
 
     public void dropContents(Level level, BlockPos pos) {

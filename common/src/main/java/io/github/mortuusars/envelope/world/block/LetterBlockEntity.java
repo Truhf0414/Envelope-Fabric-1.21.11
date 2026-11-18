@@ -36,6 +36,7 @@ public class LetterBlockEntity extends BlockEntity implements Nameable {
 
     protected @Nullable SeededContainerLoot loot = null;
     protected @NotNull ItemStack letter = ItemStack.EMPTY;
+    private boolean removalHandled = false;
 
     public LetterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -53,9 +54,25 @@ public class LetterBlockEntity extends BlockEntity implements Nameable {
     // 1.21.11: moved here from LetterBlock#onRemove (removed). Called on the server when the block changed.
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        removalHandled = true;
         if (level == null) return;
         Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), getLetter(null));
         setLetter(ItemStack.EMPTY);
+    }
+
+    // 1.21.11: commands that replace blocks skip preRemoveSideEffects; 1.21.1's onRemove dropped the letter then too.
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (!removalHandled && BlockEntityRemoval.wasBlockReplaced(this)) {
+            preRemoveSideEffects(getBlockPos(), getBlockState());
+        }
+    }
+
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        removalHandled = false;
     }
 
     public void setLetter(ItemStack letter) {

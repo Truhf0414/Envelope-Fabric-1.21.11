@@ -55,7 +55,7 @@ import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.world.level.chunk.LevelChunk;
+import io.github.mortuusars.envelope.world.block.BlockEntityRemoval;
 
 public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbox, WorldlyContainer {
     public static final int REGULAR_SLOTS = 3;
@@ -477,7 +477,7 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (!blockRemoved && wasBlockReplaced()) {
+        if (!blockRemoved && BlockEntityRemoval.wasBlockReplaced(this)) {
             // 1.21.11: commands that replace blocks (/setblock, /fill, /clone) pass a flag that skips
             // preRemoveSideEffects, so the mailbox would look "unloaded" and its inbox would be stored for later.
             // The block is gone for good in that case, so the inbox is dropped (not stored), like 1.21.1's onRemove
@@ -489,21 +489,6 @@ public class MailboxBlockEntity extends BaseContainerBlockEntity implements Inbo
         if (!blockRemoved) {
             unloadInbox();
         }
-    }
-
-    /**
-     * True when this block entity is being removed because the block at its position is no longer a mailbox.
-     * False when only the block entity goes away while the block stays (chunk unload, or a relocation mod such as
-     * CarryOn taking the block entity first). Reads the chunk only if it is already loaded, so it never loads a chunk
-     * that is in the middle of unloading.
-     */
-    private boolean wasBlockReplaced() {
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return false;
-        }
-        BlockPos pos = getBlockPos();
-        @Nullable LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
-        return chunk != null && !chunk.getBlockState(pos).is(getBlockState().getBlock());
     }
 
     @Override
