@@ -97,9 +97,16 @@ public class LetterEditScreen extends Screen {
 
     // -- Render
 
+    // 1.21.11: a screen over the game (not a menu) says so; Screen#renderBackground then draws the transparent
+    // background and the subtitles that the HUD defers to it. Same as vanilla's BookEditScreen and sign screens.
+    @Override
+    public boolean isInGameUi() {
+        return true;
+    }
+
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(guiGraphics);
+        super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 

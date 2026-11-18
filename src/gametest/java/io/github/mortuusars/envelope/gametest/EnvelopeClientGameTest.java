@@ -69,6 +69,7 @@ public class EnvelopeClientGameTest implements FabricClientGameTest {
 
             EntityShots.run(context, singleplayer);
             ScreenShots.run(context, singleplayer, problems);
+            ContainerClicks.run(context, singleplayer, results, problems);
 
             singleplayer.getServer().runOnServer(WorldState::populate);
             // Let the mail service pick up the new delivery (pending couriers become active on its next tick)

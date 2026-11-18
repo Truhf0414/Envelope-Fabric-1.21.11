@@ -467,8 +467,12 @@ public class Envelope {
 
         // -- Misc
 
+        // 1.21.11: persistent. Since 1.21.5 the client hashes the components of stacks it clicks in a menu, and a
+        // component without a codec cannot be hashed (ClientPacketListener throws "Failed to hash"). Upstream had it
+        // network-only, so the flag also did not survive a save; now a flag left on an item (e.g. disconnecting with
+        // a letter open) is saved too and goes away the next time the item is opened and closed.
         public static final DataComponentType<Unit> OPEN = REGISTRAR.dataComponentType("open",
-              b -> b.networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
+              b -> b.persistent(Unit.CODEC).networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
         public static final DataComponentType<List<Occupant>> PIGEONS = REGISTRAR.dataComponentType("pigeons",
               b -> b.persistent(Occupant.LIST_CODEC).networkSynchronized(Occupant.STREAM_CODEC.apply(ByteBufCodecs.list())).cacheEncoding());
 

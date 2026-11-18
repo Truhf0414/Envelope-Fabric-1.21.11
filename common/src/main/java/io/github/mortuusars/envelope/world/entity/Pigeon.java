@@ -423,6 +423,13 @@ public class Pigeon extends Animal implements FlyingAnimal, PhysicalCourier, Con
               && getEatingTicks() <= 0;
     }
 
+    // 1.21.11: replaces upstream's canTakeItem override (only food could be taken), which dispensers used before
+    // equipping armor. Mob's default is canPickUpLoot(), true for pigeons, so armor would be put on them.
+    @Override
+    protected boolean canDispenserEquipIntoSlot(net.minecraft.world.entity.EquipmentSlot slot) {
+        return false;
+    }
+
     @Override
     public boolean canHoldItem(ItemStack stack) {
         return level() instanceof ServerLevel serverLevel && wantsToPickUp(serverLevel, stack);
