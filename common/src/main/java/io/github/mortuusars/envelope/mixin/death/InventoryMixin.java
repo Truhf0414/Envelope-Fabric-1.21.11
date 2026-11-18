@@ -3,7 +3,7 @@ package io.github.mortuusars.envelope.mixin.death;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.mortuusars.envelope.Envelope;
-import io.github.mortuusars.envelope.world.item.component.seal.Seal;
+import io.github.mortuusars.envelope.world.item.component.SealLock;
 import io.github.mortuusars.envelope.world.level.saveddata.SealLocks;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -82,9 +82,7 @@ public abstract class InventoryMixin {
 
     @Unique
     private static boolean envelope$keepOnDeath(Player instance, ItemStack droppedItem) {
-        if ((instance.isDeadOrDying() || instance.dead)
-              && droppedItem.get(Envelope.DataComponents.SEAL) instanceof Seal seal
-              && seal.lock().map(lock -> lock.isOwnedBy(instance) && lock.isLocked(instance.level())).orElse(false)) {
+        if (SealLock.isKeptOnDeath(instance, droppedItem)) {
             Vec3 pos = instance.position();
             instance.level().playSound(null, pos.x, pos.y, pos.z, Envelope.SoundEvents.SOULBOUND_SEAL_STAMP_UNLOCK.get(), SoundSource.PLAYERS,
                   1f, instance.getRandom().nextFloat() * 0.3f + 0.85f);

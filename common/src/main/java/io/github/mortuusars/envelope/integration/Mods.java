@@ -4,6 +4,7 @@ import io.github.mortuusars.envelope.lib.mortaar.Platform;
 
 public class Mods {
     public static final Mod SABLE = new Mod("sable");
+    public static final Mod UNIVERSAL_GRAVES = new Mod("universal-graves");
 
     public record Mod(String id) {
         public boolean isLoaded() {

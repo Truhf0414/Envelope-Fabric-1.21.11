@@ -6,6 +6,8 @@ import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.command.EnvelopeCommand;
 import io.github.mortuusars.envelope.event.CommonEvents;
 import io.github.mortuusars.envelope.event.ServerEvents;
+import io.github.mortuusars.envelope.fabric.integration.graves.GravesCompat;
+import io.github.mortuusars.envelope.integration.Mods;
 import io.github.mortuusars.envelope.world.entity.CharredPigeon;
 import io.github.mortuusars.envelope.world.entity.CourierBat;
 import io.github.mortuusars.envelope.world.entity.Pigeon;
@@ -106,6 +108,10 @@ public class EnvelopeFabric implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register(CommonEvents::livingDeath);
 
         ServerPlayerEvents.COPY_FROM.register(ServerEvents::playerCopy);
+
+        if (Mods.UNIVERSAL_GRAVES.isLoaded()) {
+            GravesCompat.init();
+        }
 
         LootTableEvents.MODIFY.register(EnvelopeFabric::modifyLoot);
     }

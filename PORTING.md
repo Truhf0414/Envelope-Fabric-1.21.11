@@ -56,6 +56,10 @@ The goal was a faithful port: same items, blocks, mail flow and services as upst
     text-box rendering; otherwise the screen's title and buttons disappeared.
   - The mailbox naming and letter editing screens keep keyboard focus on the text box when
     keyboard navigation is active.
+  - With [Universal Graves](https://modrinth.com/mod/universal-graves) installed, items under a
+    player's own locked soulbound seal stay with the player on death instead of going into the
+    grave. Graves collects the inventory before the normal death drop, where upstream keeps
+    these items; upstream has no Graves integration.
 - **Added translation:** Traditional Chinese (`zh_tw`).
 
 ### Known limitations
@@ -73,6 +77,8 @@ The goal was a faithful port: same items, blocks, mail flow and services as upst
 - `./gradlew runClientGameTest` — scripted client tests (Fabric client gametest API, sources in
   `src/gametest`): opens a world, runs upstream's Bugger tests plus the port's own, checks
   screens, recipe sync, save/reload, mail services, and a dedicated server join.
+- `./gradlew prodClientGameTestGraves` — the same tests against the built jar with Universal
+  Graves and Polymer installed.
 - `/mortaar debug tests` (operator only) runs the Bugger tests inside a running game.
 
 ### Build
@@ -128,7 +134,9 @@ Envelope 依賴 mortuusars 的函式庫 [Mortaar](https://github.com/mortuusars/
 - **相容性修正。**
   - 其他 mod（Modern UI）中途取消文字框的繪製時，地址欄與取名欄的裁切範圍仍會正確關閉；
     不然畫面的標題與按鈕會消失。
-  - 啟用鍵盤導覽時，信箱取名畫面與信紙編輯畫面的鍵盤焦點會留在文字框上。
+  - 有裝 [Universal Graves](https://modrinth.com/mod/universal-graves) 時，玩家自己上鎖的靈魂綁定
+    封蠟物品在死亡時會留在身上，不會被收進墳墓。Graves 會在一般的死亡掉落之前就把背包收走，
+    而上游正是在一般的死亡掉落裡留住這些物品；上游沒有 Graves 整合。
 - **新增翻譯：** 繁體中文（`zh_tw`）。
 
 ### 已知限制
@@ -144,6 +152,7 @@ Envelope 依賴 mortuusars 的函式庫 [Mortaar](https://github.com/mortuusars/
 - `./gradlew runClientGameTest`——腳本化的玩家端測試（Fabric client gametest，原始碼在
   `src/gametest`）：開一個世界，跑上游的 Bugger 測試與本移植自己的測試，檢查畫面、配方同步、
   存檔重開、郵務服務，以及連線到專用伺服器。
+- `./gradlew prodClientGameTestGraves`——同一組測試，改用建置出的 jar，並裝上 Universal Graves 與 Polymer。
 - `/mortaar debug tests`（限管理員）在執行中的遊戲裡跑 Bugger 測試。
 
 ### 從原始碼 build

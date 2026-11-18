@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.github.mortuusars.envelope.Config;
+import io.github.mortuusars.envelope.Envelope;
+import io.github.mortuusars.envelope.world.item.component.seal.Seal;
 import io.github.mortuusars.envelope.world.level.saveddata.SealLocks;
 import io.github.mortuusars.envelope.lib.mortaar.util.GameTimeId;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -11,6 +13,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +65,16 @@ public record SealLock(String owner, GameTimeId id) {
 
     public boolean isLocked(Level level) {
         return SealLocks.get(level).isLocked(this);
+    }
+
+    /**
+     * Whether a dying player keeps this item: it carries a seal whose soulbound lock is theirs and still locked.
+     * Checked by the death drop (InventoryMixin) and, on GGL servers, by the Universal Graves compat.
+     */
+    public static boolean isKeptOnDeath(Player player, ItemStack stack) {
+        return (player.isDeadOrDying() || player.dead)
+              && stack.get(Envelope.DataComponents.SEAL) instanceof Seal seal
+              && seal.lock().map(lock -> lock.isOwnedBy(player) && lock.isLocked(player.level())).orElse(false);
     }
 
     public boolean isLockedFor(Player player) {

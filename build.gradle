@@ -22,6 +22,17 @@ repositories {
         name = "BlameJared" // JEI
         url = "https://maven.blamejared.com/"
     }
+    exclusiveContent { // Universal Graves, Polymer
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 // Why: the port keeps upstream's multiloader directory layout (common/, fabric/)
@@ -94,6 +105,9 @@ dependencies {
     // Why no JEI at dev runtime: jei-fabric 27.54 is built with Loom 1.17.20 and the
     // validated Loom 1.16.2 refuses to remap it. JEI is tested in the Prism instance instead.
 
+    // Port (GGL): Universal Graves is optional; when present, soulbound-locked items are kept out of the grave.
+    modCompileOnly "maven.modrinth:universal-graves:${project.universal_graves_version}"
+
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.3"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
@@ -103,11 +117,15 @@ dependencies {
 //   gradlew prodClientGameTest  - real client running the scripted tests from src/gametest against the built jar
 configurations {
     productionRuntimeMods
+    gravesRuntimeMods
 }
 
 dependencies {
     productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     productionRuntimeMods "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${project.forge_config_api_port_version}"
+
+    gravesRuntimeMods("maven.modrinth:universal-graves:${project.universal_graves_version}") { transitive = false }
+    gravesRuntimeMods("maven.modrinth:polymer:${project.polymer_version}") { transitive = false }
 }
 
 def gametestJar = tasks.register("gametestJar", Jar) {
@@ -134,6 +152,17 @@ tasks.register("prodClientGameTest", net.fabricmc.loom.task.prod.ClientProductio
     mods.from(remapGametestJar)
     jvmArgs.add("-Dfabric.client.gametest")
     runDir = file("run/prodClientGameTest")
+}
+
+// Same scripted client tests, with Universal Graves (and the Polymer it needs) installed.
+tasks.register("prodClientGameTestGraves", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    mods.from(configurations.productionRuntimeMods)
+    mods.from(configurations.gravesRuntimeMods)
+    mods.from(remapGametestJar)
+    jvmArgs.add("-Dfabric.client.gametest")
+    // Polymer talks to the client below the networking API, which the gametest synchronizer rejects.
+    jvmArgs.add("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+    runDir = file("run/prodClientGameTestGraves")
 }
 
 // Joins a dedicated server that is already running in another process (gradlew prodServer) on 127.0.0.1:25599.
