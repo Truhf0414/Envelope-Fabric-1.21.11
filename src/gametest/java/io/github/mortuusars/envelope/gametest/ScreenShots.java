@@ -2,7 +2,9 @@ package io.github.mortuusars.envelope.gametest;
 
 import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.client.gui.screen.AddressTagScreen;
+import io.github.mortuusars.envelope.client.gui.screen.LetterBlockViewScreen;
 import io.github.mortuusars.envelope.client.gui.screen.LetterEditScreen;
+import io.github.mortuusars.envelope.client.gui.screen.PaybackPackageScreen;
 import io.github.mortuusars.envelope.client.gui.screen.LetterViewScreen;
 import io.github.mortuusars.envelope.client.gui.screen.MailboxPlacingScreen;
 import io.github.mortuusars.envelope.client.gui.screen.MailboxScreen;
@@ -67,11 +69,60 @@ final class ScreenShots {
               PackingScreen.class, null);
         useItem(context, singleplayer, problems, "screen_payback_packing", ScreenShots::paybackBox,
               PaybackPackingScreen.class, null);
+        useItem(context, singleplayer, problems, "screen_payback_package", ScreenShots::paybackPackage,
+              PaybackPackageScreen.class, null);
+        letterBlock(context, singleplayer, problems);
 
         mailbox(context, singleplayer, problems);
         placeMailbox(context, singleplayer, problems, false);
         placeMailbox(context, singleplayer, problems, true);
         tooltips(context, singleplayer, problems);
+    }
+
+    /** The packed form of {@link #paybackBox()}: what the recipient opens. */
+    private static ItemStack paybackPackage() {
+        ItemStack box = paybackBox();
+        ItemStack pack = new ItemStack(Envelope.Items.PAYBACK_PACKAGE.get());
+        pack.set(Envelope.DataComponents.PAYBACK_SUBJECT, box.get(Envelope.DataComponents.PAYBACK_SUBJECT));
+        return pack;
+    }
+
+    /** A letter placed on a wall, opened by right clicking it with an empty hand. */
+    private static void letterBlock(ClientGameTestContext context, TestSingleplayerContext singleplayer, List<String> problems) {
+        try {
+            BlockPos target = singleplayer.getServer().computeOnServer(server -> {
+                ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                ServerLevel level = player.level();
+                BlockPos pos = player.blockPosition().offset(0, 1, 2);
+                for (BlockPos clear : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 0))) {
+                    if (!clear.equals(player.blockPosition()) && !clear.equals(player.blockPosition().above())) {
+                        level.setBlock(clear, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+                    }
+                }
+                // facing north: the letter hangs on the south face of the block behind it
+                level.setBlock(pos.south(), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+                level.setBlock(pos, Envelope.Blocks.LETTER.get().defaultBlockState()
+                      .setValue(io.github.mortuusars.envelope.world.block.LetterBlock.FACING, net.minecraft.core.Direction.NORTH), 3);
+                ((io.github.mortuusars.envelope.world.block.LetterBlockEntity) level.getBlockEntity(pos))
+                      .setLetter(new ItemStack(Envelope.Items.LETTER.get()));
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                player.inventoryMenu.broadcastChanges();
+                return pos;
+            });
+            context.runOnClient(client -> client.player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,
+                  net.minecraft.world.phys.Vec3.atCenterOf(target).add(0, 0, 0.47)));
+            context.waitTicks(10);
+            context.getInput().pressKey(options -> options.keyUse);
+            context.waitForScreen(LetterBlockViewScreen.class);
+            context.waitTicks(5);
+            context.takeScreenshot("screen_letter_block_view");
+        } catch (Throwable e) {
+            problems.add("screen_letter_block_view: LetterBlockViewScreen did not open by using the placed letter -> " + firstLine(e));
+        } finally {
+            close(context, singleplayer);
+            context.runOnClient(client -> client.player.setXRot(0));
+            context.waitTicks(2);
+        }
     }
 
     /** A payback box only opens when it carries mail that asks for something back. */

@@ -62,6 +62,9 @@ final class ContainerClicks {
               () -> comparatorAfterRemoval(context, singleplayer));
         check(lines, problems, "dispenser cannot put armor on a pigeon",
               () -> dispenserPigeon(singleplayer));
+        // last: the player dies and respawns
+        check(lines, problems, "death: soulbound sealed letters (hotbar and offhand) stay, an unsealed letter drops",
+              () -> soulboundThroughDeath(context, singleplayer));
         EnvelopeClientGameTest.write(results.resolve("container_clicks.txt"), lines);
     }
 
@@ -236,6 +239,53 @@ final class ContainerClicks {
             pigeon.discard();
             return equippable.isEmpty() ? null : "a dispenser would put on " + equippable;
         });
+    }
+
+    private static String soulboundThroughDeath(ClientGameTestContext context, TestSingleplayerContext singleplayer) {
+        String setUp = singleplayer.getServer().computeOnServer(server -> {
+            if (!io.github.mortuusars.envelope.Config.Server.SOULBOUND_SEAL_STAMP_CREATES_LOCK.get()) {
+                return "the server config does not create soulbound locks";
+            }
+            ServerPlayer player = player(server);
+            player.setGameMode(GameType.SURVIVAL);
+            player.getInventory().clearContent();
+            player.getInventory().setItem(3, soulboundSealedLetter(player));
+            player.getInventory().setItem(4, new ItemStack(Envelope.Items.LETTER.get()));
+            player.setItemSlot(net.minecraft.world.entity.EquipmentSlot.OFFHAND, soulboundSealedLetter(player));
+            player.inventoryMenu.broadcastChanges();
+            return null;
+        });
+        if (setUp != null) return "set-up: " + setUp;
+        context.waitTicks(5);
+        singleplayer.getServer().runOnServer(server -> player(server).kill(player(server).level()));
+        context.waitForScreen(net.minecraft.client.gui.screens.DeathScreen.class);
+        context.waitTicks(5);
+        context.runOnClient(client -> client.player.respawn());
+        context.waitFor(client -> client.player != null && client.player.isAlive()
+              && !(client.screen instanceof net.minecraft.client.gui.screens.DeathScreen), 20 * 20);
+        context.setScreen(() -> null);
+        context.waitTicks(10);
+        return singleplayer.getServer().computeOnServer(server -> {
+            ServerPlayer player = player(server);
+            List<String> wrong = new ArrayList<>();
+            ItemStack hotbar = player.getInventory().getItem(3);
+            if (!hotbar.has(Envelope.DataComponents.SEAL)) wrong.add("hotbar slot 3 holds " + describe(hotbar));
+            else if (hotbar.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA)) wrong.add("the kept letter still carries the transfer marker");
+            ItemStack offhand = player.getOffhandItem();
+            if (!offhand.has(Envelope.DataComponents.SEAL)) wrong.add("offhand holds " + describe(offhand));
+            if (!player.getInventory().getItem(4).isEmpty()) wrong.add("the unsealed letter was kept too");
+            return wrong.isEmpty() ? null : String.join("; ", wrong);
+        });
+    }
+
+    private static ItemStack soulboundSealedLetter(ServerPlayer player) {
+        ItemStack stamp = new ItemStack(Envelope.Items.SOULBOUND_SEAL_STAMP.get());
+        io.github.mortuusars.envelope.world.item.component.seal.Seal seal =
+              ((io.github.mortuusars.envelope.world.item.SoulboundSealStampItem) stamp.getItem()).createSeal(stamp, player);
+        seal.lock().ifPresent(lock -> lock.lock(player.level()));
+        ItemStack letter = new ItemStack(Envelope.Items.SEALED_LETTER.get());
+        letter.set(Envelope.DataComponents.SEAL, seal);
+        return letter;
     }
 
     // -- helpers
