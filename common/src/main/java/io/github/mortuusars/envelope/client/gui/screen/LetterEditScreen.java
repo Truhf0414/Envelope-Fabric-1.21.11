@@ -77,7 +77,11 @@ public class LetterEditScreen extends Screen {
         foldButton.setTooltip(Tooltip.create(Component.translatable("envelope.letter_and_quill.fold_button")
               .append(CommonComponents.NEW_LINE)
               .append(Component.translatable("envelope.letter_and_quill.fold_warning").withStyle(ChatFormatting.GRAY))));
+    }
 
+    // 1.21.11: see AddressTagScreen#setInitialFocus
+    @Override
+    protected void setInitialFocus() {
         setInitialFocus(textBox);
     }
 

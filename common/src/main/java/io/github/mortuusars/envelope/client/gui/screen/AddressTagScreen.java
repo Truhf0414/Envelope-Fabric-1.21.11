@@ -87,9 +87,15 @@ public class AddressTagScreen extends Screen {
         confirmButton.setTooltip(Tooltip.create(Component.translatable("gui.envelope.confirm")));
         addRenderableWidget(confirmButton);
 
-        setInitialFocus(addressBox);
-
         addressTextChanged(addressBox.getValue());
+    }
+
+    // 1.21.11: the game calls this after init(). Focusing the box inside init() is not enough: when the keyboard (or a
+    // controller, with a controller mod) is in use, the default implementation then moves the focus on to the next
+    // widget, and the box keeps blinking without receiving what is typed. Same as vanilla's AnvilScreen.
+    @Override
+    protected void setInitialFocus() {
+        setInitialFocus(addressBox);
     }
 
     // --

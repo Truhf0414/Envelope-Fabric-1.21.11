@@ -69,7 +69,8 @@ final class ScreenShots {
               PaybackPackingScreen.class, null);
 
         mailbox(context, singleplayer, problems);
-        placeMailbox(context, singleplayer, problems);
+        placeMailbox(context, singleplayer, problems, false);
+        placeMailbox(context, singleplayer, problems, true);
         tooltips(context, singleplayer, problems);
     }
 
@@ -138,8 +139,10 @@ final class ScreenShots {
      * Placing a mailbox the way a player does: right click a block with the item, type an address in the screen that
      * opens, press Enter. The address must arrive in the box as typed and the mailbox must end up in the world.
      */
-    private static void placeMailbox(ClientGameTestContext context, TestSingleplayerContext singleplayer, List<String> problems) {
-        String address = "Typed by the test";
+    private static void placeMailbox(ClientGameTestContext context, TestSingleplayerContext singleplayer, List<String> problems,
+                             boolean keyboardNavigation) {
+        String address = keyboardNavigation ? "Typed with keyboard focus" : "Typed by the test";
+        String name = "screen_mailbox_placing" + (keyboardNavigation ? "_keyboard" : "");
         try {
             BlockPos target = singleplayer.getServer().computeOnServer(server -> {
                 ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
@@ -157,15 +160,29 @@ final class ScreenShots {
             context.getInput().pressKey(options -> options.keyUse);
             context.waitForScreen(MailboxPlacingScreen.class);
             context.waitTicks(5);
+            if (keyboardNavigation) {
+                // What a screen does when the game considers the keyboard (or, with a controller mod, a controller) to
+                // be in use: after building its widgets it moves the focus on with Screen#setInitialFocus(). Opening a
+                // screen from the game resets that state, so it is set here and the widgets are built again.
+                context.runOnClient(client -> {
+                    client.setLastInputType(net.minecraft.client.InputType.KEYBOARD_TAB);
+                    client.screen.resize(client.screen.width, client.screen.height);
+                });
+                context.waitTicks(2);
+            }
+            String focus = context.computeOnClient(client -> "last input type: " + client.getLastInputType() + ", focused widget: "
+                  + (client.screen.getFocused() == null ? "none" : client.screen.getFocused().getClass().getName()));
+            EnvelopeClientGameTest.write(context.computeOnClient(client -> client.gameDirectory.toPath()
+                  .resolve("envelope_port_results").resolve(name + "_focus.txt")), List.of(focus));
             context.getInput().typeChars(address);
             context.waitTicks(3);
-            context.takeScreenshot("screen_mailbox_placing");
+            context.takeScreenshot(name);
             String typed = context.computeOnClient(client -> client.screen == null ? "(no screen)" : client.screen.children().stream()
                   .filter(net.minecraft.client.gui.components.EditBox.class::isInstance)
                   .map(widget -> ((net.minecraft.client.gui.components.EditBox) widget).getValue())
                   .findFirst().orElse("(no text box)"));
             if (!typed.equals(address)) {
-                problems.add("screen_mailbox_placing: typed '" + address + "' but the address box holds '" + typed + "'");
+                problems.add(name + ": typed '" + address + "' but the address box holds '" + typed + "'");
             }
             context.getInput().pressKey(GLFW.GLFW_KEY_ENTER);
             context.waitTicks(20);
@@ -179,10 +196,10 @@ final class ScreenShots {
                 return "(no mailbox was placed)";
             });
             if (!placed.equals(address)) {
-                problems.add("screen_mailbox_placing: expected a placed mailbox with the address '" + address + "', found " + placed);
+                problems.add(name + ": expected a placed mailbox with the address '" + address + "', found " + placed);
             }
         } catch (Throwable e) {
-            problems.add("screen_mailbox_placing: " + firstLine(e));
+            problems.add(name + ": " + firstLine(e));
         } finally {
             close(context, singleplayer);
         }
