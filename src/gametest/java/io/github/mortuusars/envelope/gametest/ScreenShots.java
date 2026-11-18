@@ -44,6 +44,7 @@ final class ScreenShots {
               LetterEditScreen.class, () -> {
                   context.getInput().typeChars("Dear tester, hello from 1.21.11");
                   context.waitTicks(2);
+                  expectTyped(context, problems, "screen_letter_edit", "Dear tester, hello from 1.21.11");
                   context.takeScreenshot("screen_letter_edit_typed");
                   // Select everything: the formatting toolbar only shows while text is selected. It used to be pushed
                   // forward with a z translation; this shot shows whether anything is drawn over it now.
@@ -58,6 +59,7 @@ final class ScreenShots {
               AddressTagScreen.class, () -> {
                   context.getInput().typeChars("env");
                   context.waitTicks(2);
+                  expectTyped(context, problems, "screen_address_tag", "env");
               });
         useItem(context, singleplayer, problems, "screen_payback_tag", () -> new ItemStack(Envelope.Items.PAYBACK_TAG.get()),
               PaybackTagScreen.class, null);
@@ -352,6 +354,23 @@ final class ScreenShots {
         context.setScreen(() -> null);
         singleplayer.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().closeContainer());
         context.waitTicks(3);
+    }
+
+    /** The text in the open screen's text box (vanilla EditBox or Envelope's TextBox) must be what was typed. */
+    private static void expectTyped(ClientGameTestContext context, List<String> problems, String name, String expected) {
+        String typed = context.computeOnClient(client -> {
+            if (client.screen == null) return "(no screen)";
+            for (var widget : client.screen.children()) {
+                if (widget instanceof net.minecraft.client.gui.components.EditBox box) return box.getValue();
+                if (widget instanceof io.github.mortuusars.envelope.client.gui.widget.textbox.TextBox box) {
+                    return box.getEditor().getText().toStringWithoutFormatting();
+                }
+            }
+            return "(no text box)";
+        });
+        if (!typed.equals(expected)) {
+            problems.add(name + ": typed '" + expected + "' but the text box holds '" + typed + "'");
+        }
     }
 
     private static String firstLine(Throwable e) {
