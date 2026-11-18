@@ -8,6 +8,12 @@
 
 > A classy mailing system for Minecraft: letters, packages, mailboxes and pigeon couriers.
 
+![Two pigeons next to a mailbox](docs/pigeons-and-mailbox.webp)
+
+![A courier pigeon carrying a package](docs/courier-pigeon.webp)
+
+![A pigeon perched on a mailbox](docs/pigeon-on-mailbox.webp)
+
 An unofficial **Fabric / Minecraft 1.21.11** port of
 [mortuusars/Envelope](https://github.com/mortuusars/Envelope), distributed under the
 original GPLv3 license.
