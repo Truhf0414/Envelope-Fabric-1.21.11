@@ -4,6 +4,7 @@ import io.github.mortuusars.envelope.Envelope;
 import io.github.mortuusars.envelope.client.gui.screen.AddressTagScreen;
 import io.github.mortuusars.envelope.client.gui.screen.LetterEditScreen;
 import io.github.mortuusars.envelope.client.gui.screen.LetterViewScreen;
+import io.github.mortuusars.envelope.client.gui.screen.MailboxPlacingScreen;
 import io.github.mortuusars.envelope.client.gui.screen.MailboxScreen;
 import io.github.mortuusars.envelope.client.gui.screen.PackingScreen;
 import io.github.mortuusars.envelope.client.gui.screen.PaybackPackingScreen;
@@ -66,6 +67,7 @@ final class ScreenShots {
               PaybackPackingScreen.class, null);
 
         mailbox(context, singleplayer, problems);
+        placeMailbox(context, singleplayer, problems);
         tooltips(context, singleplayer, problems);
     }
 
@@ -125,6 +127,60 @@ final class ScreenShots {
             context.takeScreenshot("screen_mailbox");
         } catch (Throwable e) {
             problems.add("screen_mailbox: MailboxScreen did not open by using the block -> " + firstLine(e));
+        } finally {
+            close(context, singleplayer);
+        }
+    }
+
+    /**
+     * Placing a mailbox the way a player does: right click a block with the item, type an address in the screen that
+     * opens, press Enter. The address must arrive in the box as typed and the mailbox must end up in the world.
+     */
+    private static void placeMailbox(ClientGameTestContext context, TestSingleplayerContext singleplayer, List<String> problems) {
+        String address = "Typed by the test";
+        try {
+            BlockPos target = singleplayer.getServer().computeOnServer(server -> {
+                ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                ServerLevel level = player.level();
+                BlockPos pos = player.blockPosition().offset(0, 1, 2);
+                for (BlockPos clear : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+                    level.setBlock(clear, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+                }
+                level.setBlock(pos, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Envelope.Items.MAILBOX.get()));
+                player.inventoryMenu.broadcastChanges();
+                return pos;
+            });
+            context.waitTicks(10);
+            context.getInput().pressKey(options -> options.keyUse);
+            context.waitForScreen(MailboxPlacingScreen.class);
+            context.waitTicks(5);
+            context.getInput().typeChars(address);
+            context.waitTicks(3);
+            context.takeScreenshot("screen_mailbox_placing");
+            String typed = context.computeOnClient(client -> client.screen == null ? "(no screen)" : client.screen.children().stream()
+                  .filter(net.minecraft.client.gui.components.EditBox.class::isInstance)
+                  .map(widget -> ((net.minecraft.client.gui.components.EditBox) widget).getValue())
+                  .findFirst().orElse("(no text box)"));
+            if (!typed.equals(address)) {
+                problems.add("screen_mailbox_placing: typed '" + address + "' but the address box holds '" + typed + "'");
+            }
+            context.getInput().pressKey(GLFW.GLFW_KEY_ENTER);
+            context.waitTicks(20);
+            String placed = singleplayer.getServer().computeOnServer(server -> {
+                ServerLevel level = server.getPlayerList().getPlayers().getFirst().level();
+                for (BlockPos pos : BlockPos.betweenClosed(target.offset(-1, -1, -1), target.offset(1, 1, 1))) {
+                    if (level.getBlockEntity(pos) instanceof MailboxBlockEntity mailbox) {
+                        return mailbox.getAddress().getString();
+                    }
+                }
+                return "(no mailbox was placed)";
+            });
+            if (!placed.equals(address)) {
+                problems.add("screen_mailbox_placing: expected a placed mailbox with the address '" + address + "', found " + placed);
+            }
+        } catch (Throwable e) {
+            problems.add("screen_mailbox_placing: " + firstLine(e));
         } finally {
             close(context, singleplayer);
         }
