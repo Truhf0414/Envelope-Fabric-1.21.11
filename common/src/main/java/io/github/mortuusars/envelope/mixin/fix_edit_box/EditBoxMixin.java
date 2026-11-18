@@ -2,16 +2,12 @@ package io.github.mortuusars.envelope.mixin.fix_edit_box;
 
 import io.github.mortuusars.envelope.client.gui.screen.AddressTagScreen;
 import io.github.mortuusars.envelope.lib.mortaar.client.Minecrft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EditBox.class)
 public abstract class EditBoxMixin extends AbstractWidget {
@@ -29,19 +25,5 @@ public abstract class EditBoxMixin extends AbstractWidget {
         return constant;
     }
 
-    // Purpose of scissoring here is to limit suggestion text to the widget bounds, otherwise it overflows.
-    // You can clearly tell that mojang made half of features of EditBox for chat screen and never bothered to make them work elsewhere.
-    @Inject(method = "renderWidget", at = @At("HEAD"))
-    private void onRenderWidgetHead(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (Minecrft.get().screen instanceof AddressTagScreen) {
-            guiGraphics.enableScissor(getX() - 1, getY(), getX() + getWidth() + 1, getY() + getHeight());
-        }
-    }
-
-    @Inject(method = "renderWidget", at = @At("RETURN"))
-    private void onRenderWidgetReturn(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (Minecrft.get().screen instanceof AddressTagScreen) {
-            guiGraphics.disableScissor();
-        }
-    }
+    // Port: the scissor that limited the suggestion text to the box moved to AddressTagScreen (see there for why).
 }

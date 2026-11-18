@@ -70,7 +70,21 @@ public class AddressTagScreen extends Screen {
         titleLabelX = leftPos + 12;
         titleLabelY = topPos + 6;
 
-        addressBox = new EditBox(font, leftPos + 26, topPos + 21, 125, 9, Component.empty());
+        // Clips the autocomplete suggestion text to the box, otherwise it overflows. Upstream did this in EditBoxMixin
+        // (scissor on at HEAD, off at RETURN); a mod that cancels EditBox#renderWidget (Modern UI draws the text
+        // itself) skipped the RETURN, the scissor stayed on and everything drawn after the box (title, icon, confirm
+        // button) was clipped away. Here both ends are in one method, so the scissor is always closed.
+        addressBox = new EditBox(font, leftPos + 26, topPos + 21, 125, 9, Component.empty()) {
+            @Override
+            public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.enableScissor(getX() - 1, getY(), getX() + getWidth() + 1, getY() + getHeight());
+                try {
+                    super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+                } finally {
+                    guiGraphics.disableScissor();
+                }
+            }
+        };
         addressBox.setValue(getInitialAddressValue());
         addressBox.setMaxLength(BlockAddress.MAX_LENGTH);
         addressBox.setTextColor(Colors.WHITE);
