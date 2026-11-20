@@ -19,7 +19,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.note\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.note"}
               },
               "function": "minecraft:set_components"
             }
@@ -41,7 +41,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.note\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.note"}
               },
               "function": "minecraft:set_components"
             }
@@ -63,7 +63,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }
@@ -85,7 +85,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }
@@ -107,7 +107,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }
@@ -129,7 +129,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }
@@ -151,7 +151,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }
@@ -173,7 +173,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.collapsed_mail_hub.dock_note.name.status\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.collapsed_mail_hub.dock_note.name.status"}
               },
               "function": "minecraft:set_components"
             }

@@ -41,7 +41,7 @@
           "functions": [
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             },
@@ -90,7 +90,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -112,7 +112,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -134,7 +134,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -156,7 +156,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -178,7 +178,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -200,7 +200,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -227,7 +227,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -249,7 +249,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -271,7 +271,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -293,7 +293,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -315,7 +315,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -337,7 +337,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -359,7 +359,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -381,7 +381,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }
@@ -403,7 +403,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"item.envelope.lost_mail\"}"
+                "minecraft:item_name": {"translate": "item.envelope.lost_mail"}
               },
               "function": "minecraft:set_components"
             }

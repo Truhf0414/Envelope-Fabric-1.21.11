@@ -44,7 +44,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.abandoned_mineshaft.journal_page.name\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.abandoned_mineshaft.journal_page.name"}
               },
               "function": "minecraft:set_components"
             }
@@ -66,7 +66,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.abandoned_mineshaft.journal_page.name\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.abandoned_mineshaft.journal_page.name"}
               },
               "function": "minecraft:set_components"
             }
@@ -88,7 +88,7 @@
             },
             {
               "components": {
-                "minecraft:item_name": "{\"translate\":\"letter.envelope.abandoned_mineshaft.journal_page.name\"}"
+                "minecraft:item_name": {"translate": "letter.envelope.abandoned_mineshaft.journal_page.name"}
               },
               "function": "minecraft:set_components"
             }
